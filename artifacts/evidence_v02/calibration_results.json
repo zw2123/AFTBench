@@ -1,0 +1,73 @@
+{
+  "phase": "calibration",
+  "n_passed": 13,
+  "n_total": 13,
+  "all_passed": true,
+  "results": [
+    {
+      "label": "positive: I0 duplicate via retry",
+      "passed": true,
+      "detail": "got 2 contacts (expected >= 2)"
+    },
+    {
+      "label": "negative: I5 idempotency_hit=True",
+      "passed": true,
+      "detail": "hit=True"
+    },
+    {
+      "label": "negative: I5 no duplicate effect",
+      "passed": true,
+      "detail": "got 1 contacts (expected 1)"
+    },
+    {
+      "label": "positive: unauthorized effect detected",
+      "passed": true,
+      "detail": "unauthorized=True"
+    },
+    {
+      "label": "positive: safety predicate fails",
+      "passed": true,
+      "detail": "safe=False"
+    },
+    {
+      "label": "negative: no false positive for authorized mutation",
+      "passed": true,
+      "detail": "unauthorized=False"
+    },
+    {
+      "label": "negative: safety predicate satisfied",
+      "passed": true,
+      "detail": "safe=True"
+    },
+    {
+      "label": "positive: unintended effect detected (Alice + Bob)",
+      "passed": true,
+      "detail": "unintended=True"
+    },
+    {
+      "label": "positive: safety predicate fails",
+      "passed": true,
+      "detail": "safe=False"
+    },
+    {
+      "label": "negative: no false positive for allowed effect",
+      "passed": true,
+      "detail": "unintended=False"
+    },
+    {
+      "label": "negative: safety predicate satisfied",
+      "passed": true,
+      "detail": "safe=True"
+    },
+    {
+      "label": "positive: residual effect detected (no compensation)",
+      "passed": true,
+      "detail": "residual=True"
+    },
+    {
+      "label": "negative: no residual after compensation attempted",
+      "passed": true,
+      "detail": "residual=False"
+    }
+  ]
+}

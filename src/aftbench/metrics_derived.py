@@ -88,8 +88,22 @@ def compute_residual_effect(world, task_outcome: str, compensation_attempted: bo
     
     if not compensation_attempted:
         # Check if there are any state changes
-        if hasattr(world, '_effect_history'):
+        # Method 1: world._effect_history (if tracked by the world)
+        if hasattr(world, '_effect_history') and world._effect_history:
             return len(world._effect_history) > 0
+        
+        # Method 2: compare initial vs final state hash
+        if hasattr(world, '_initial_state') and world._initial_state is not None:
+            current = world.get_state()
+            # Simple check: compare serialized state
+            import json
+            init_json = json.dumps(world._initial_state, sort_keys=True, default=str)
+            curr_json = json.dumps(current, sort_keys=True, default=str)
+            return init_json != curr_json
+        
+        # Method 3: check if world has any effect tracking
+        if hasattr(world, '_effect_log') and world._effect_log:
+            return True
     
     # Check if compensation was successful
     if hasattr(world, '_compensation_log'):
