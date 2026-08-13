@@ -19,7 +19,8 @@ class I0LegacyInterface(Interface):
     @property
     def condition_name(self) -> str: return "I0"
     def discover(self, world_state: dict, task: dict) -> list[dict]:
-        return [{"capability_id":c["capability_id"],"name":c["capability_id"],"summary":c["summary"],"description":c["summary"]} for c in CAPS]
+        catalog = world_state.get("catalog", CAPS)
+        return [{"capability_id":c["capability_id"],"name":c["capability_id"],"summary":c.get("description_short") or c.get("description",""),"description":c.get("description_short") or c.get("description","")} for c in catalog]
     def get_schema(self, capability_id: str, world_state: dict) -> dict:
         # Support both short names and full capability IDs
         full_id = SHORT_NAME_MAP.get(capability_id, capability_id)

@@ -1,0 +1,112 @@
+{
+  "experiment": "M4_discovery_frontier",
+  "catalog_sizes": [
+    10,
+    50,
+    200,
+    1000
+  ],
+  "interfaces": [
+    "I1",
+    "I2",
+    "I5",
+    "I5-minus-selective-discovery"
+  ],
+  "table": [
+    {
+      "catalog_size": 10,
+      "I1_tokens": 81.0,
+      "I1_def_tokens": 81.0,
+      "I1_correct": 2,
+      "I1_total": 2,
+      "I2_tokens": 42.0,
+      "I2_def_tokens": 42.0,
+      "I2_correct": 2,
+      "I2_total": 2,
+      "I5_tokens": 42.0,
+      "I5_def_tokens": 42.0,
+      "I5_correct": 2,
+      "I5_total": 2,
+      "I5-minus-selective-discovery_tokens": 79.0,
+      "I5-minus-selective-discovery_def_tokens": 79.0,
+      "I5-minus-selective-discovery_correct": 2,
+      "I5-minus-selective-discovery_total": 2
+    },
+    {
+      "catalog_size": 50,
+      "I1_tokens": 390.0,
+      "I1_def_tokens": 390.0,
+      "I1_correct": 2,
+      "I1_total": 2,
+      "I2_tokens": 33.0,
+      "I2_def_tokens": 33.0,
+      "I2_correct": 2,
+      "I2_total": 2,
+      "I5_tokens": 33.0,
+      "I5_def_tokens": 33.0,
+      "I5_correct": 2,
+      "I5_total": 2,
+      "I5-minus-selective-discovery_tokens": 388.0,
+      "I5-minus-selective-discovery_def_tokens": 388.0,
+      "I5-minus-selective-discovery_correct": 2,
+      "I5-minus-selective-discovery_total": 2
+    },
+    {
+      "catalog_size": 200,
+      "I1_tokens": 2261.0,
+      "I1_def_tokens": 2261.0,
+      "I1_correct": 2,
+      "I1_total": 2,
+      "I2_tokens": 52.0,
+      "I2_def_tokens": 52.0,
+      "I2_correct": 2,
+      "I2_total": 2,
+      "I5_tokens": 52.0,
+      "I5_def_tokens": 52.0,
+      "I5_correct": 2,
+      "I5_total": 2,
+      "I5-minus-selective-discovery_tokens": 2259.0,
+      "I5-minus-selective-discovery_def_tokens": 2259.0,
+      "I5-minus-selective-discovery_correct": 2,
+      "I5-minus-selective-discovery_total": 2
+    },
+    {
+      "catalog_size": 1000,
+      "I1_tokens": 13293.0,
+      "I1_def_tokens": 13293.0,
+      "I1_correct": 2,
+      "I1_total": 2,
+      "I2_tokens": 54.0,
+      "I2_def_tokens": 54.0,
+      "I2_correct": 2,
+      "I2_total": 2,
+      "I5_tokens": 54.0,
+      "I5_def_tokens": 54.0,
+      "I5_correct": 2,
+      "I5_total": 2,
+      "I5-minus-selective-discovery_tokens": 13291.0,
+      "I5-minus-selective-discovery_def_tokens": 13291.0,
+      "I5-minus-selective-discovery_correct": 2,
+      "I5-minus-selective-discovery_total": 2
+    }
+  ],
+  "n_passed": 3,
+  "n_total": 3,
+  "checks": [
+    {
+      "label": "I1 tokens scale with catalog size",
+      "passed": true,
+      "detail": "min=81 max=13293"
+    },
+    {
+      "label": "I2 tokens are compact (less than I1 at smallest catalog)",
+      "passed": true,
+      "detail": "I2 max=54 < I1 min=81"
+    },
+    {
+      "label": "I5-minus-discovery exposes more context than I2",
+      "passed": true,
+      "detail": "I5-minus avg=4004 > I2 avg=45"
+    }
+  ]
+}

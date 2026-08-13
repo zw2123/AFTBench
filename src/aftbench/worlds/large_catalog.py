@@ -106,12 +106,15 @@ def _gen(size, seed):
     for dom, extras in _NEAR_MISS.items():
         for n,d,inp in extras:
             entries.append({"capability_id":f"{dom}.{n}","name":n,"description":d,"input_schema":inp,"domain":dom})
+    # Fast path for large sizes: generate with unique counter suffix
+    base_count = len(entries)
     while len(entries) < size:
         dom = rng.choice(DOMAINS); base = rng.choice(_TEMPLATES[dom])
         suf = rng.choice(["v2","batch","async","bulk","extended","advanced","lite","premium","internal"])
-        cap_id = f"{dom}.{base[0]}_{suf}"
-        if any(e["capability_id"]==cap_id for e in entries): continue
-        entries.append({"capability_id":cap_id,"name":f"{base[0]}_{suf}","description":f"{base[1]} ({suf} variant)","input_schema":base[2],"domain":dom})
+        idx = len(entries) - base_count
+        cap_id = f"{dom}.{base[0]}_{suf}_{idx}"
+        # No uniqueness check needed since we use counter
+        entries.append({"capability_id":cap_id,"name":f"{base[0]}_{suf}","description":f"{base[1]} ({suf} variant #{idx})","input_schema":base[2],"domain":dom})
     rng.shuffle(entries); entries = entries[:size]
     for i,e in enumerate(entries): e["catalog_index"] = i
     return entries

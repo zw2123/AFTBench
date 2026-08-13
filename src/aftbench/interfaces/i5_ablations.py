@@ -54,6 +54,12 @@ class I5MinusSelectiveDiscovery(I5AblationInterface):
     
     def discover(self, world_state: dict, task: dict) -> list[dict]:
         # Return full catalog instead of selective discovery
+        # Use world's catalog if available, otherwise fall back to static CAPS
+        catalog = world_state.get("catalog", None)
+        if catalog is not None:
+            return [{"capability_id": c["capability_id"], "name": c["capability_id"],
+                     "description": c.get("description", ""), "input_schema": c.get("input_schema", {})}
+                    for c in catalog]
         from .i0_shared import CAPS
         return [{"capability_id": c["capability_id"], "name": c["capability_id"], 
                  "description": c["summary"], "input_schema": c["input_schema"]} 
