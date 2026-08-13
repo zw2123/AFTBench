@@ -476,6 +476,11 @@ payload={"success": recovery_success,
         # and backend-invoke time not separately tracked.
         runtime_overhead_ms = max(0, wall_clock - recovery_ms - verification_ms)
 
+        # Structured stage timing in microseconds (Phase 7).
+        # Decomposes the run into discover / invoke / recover / verify / other.
+        stage_us = self._compute_stage_timing(stage_timings, end_time_ns)
+        trace("stage_timing", "runner", payload={k: int(v) for k, v in stage_us.items()})
+
         return ResultRow(
             run_id=run_id,
             task_id=task.task_id,
@@ -518,6 +523,50 @@ payload={"success": recovery_success,
             terminal_oracle_outcome=oracle_outcome,
             initial_state_hash=initial_hash,
         )
+
+    def _compute_stage_timing(self, stage_timings: dict, end_time_ns: int) -> dict:
+        """Decompose wall-clock time into per-stage microseconds.
+
+        Stages:
+          discovery_us  — from run start to discovery end
+          invoke_us     — from invoke start to invoke end
+          recovery_us   — from recovery start to recovery end (if any)
+          verification_us — from invoke end to end-time (post-run checks)
+          other_us      — total minus the above (schema load, ledger, policy, etc.)
+          total_us      — total run duration
+        """
+        run_start = stage_timings.get("run_start_ns", 0)
+        discovery_end = stage_timings.get("discovery_end_ns", run_start)
+        invoke_start = stage_timings.get("invoke_start_ns", discovery_end)
+        invoke_end = stage_timings.get("invoke_end_ns", invoke_start)
+        recovery_start = stage_timings.get("recovery_start_ns")
+        recovery_end = stage_timings.get("recovery_end_ns", end_time_ns)
+
+        discovery_us = max(0, discovery_end - run_start)
+        invoke_us = max(0, invoke_end - invoke_start)
+        if recovery_start is not None and recovery_end is not None:
+            recovery_us = max(0, recovery_end - recovery_start)
+        else:
+            recovery_us = 0
+        verification_us = max(0, end_time_ns - invoke_end)
+        total_us = max(0, end_time_ns - run_start)
+
+        other_us = max(0, total_us - discovery_us - invoke_us - recovery_us - verification_us)
+
+        return {
+            "discovery_us": discovery_us // 1_000,
+            "schema_loading_us": 0,  # not separately tracked; part of other_us
+            "controller_us": 0,      # not separately tracked; part of other_us
+            "interface_us": invoke_us // 1_000,
+            "backend_us": invoke_us // 1_000,
+            "ledger_us": 0,          # part of other_us
+            "policy_us": 0,          # part of other_us
+            "recovery_us": recovery_us // 1_000,
+            "reconciliation_us": 0,  # part of recovery_us when reconciliation used
+            "verification_us": verification_us // 1_000,
+            "other_us": other_us // 1_000,
+            "total_us": total_us // 1_000,
+        }
 
     def _check_postconditions(self, task, state, world) -> bool:
         """Check task postconditions against world state."""
