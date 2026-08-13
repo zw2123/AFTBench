@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 from .i4_effect import I4EffectInterface, _EFFECT_CLASS_MAP, _READ_ONLY_EFFECTS
-from .i0_shared import CAPS, CAPS_BY_ID, cap_to_effect, cap_to_effect_world, false_response_fault
+from .i0_shared import CAPS, CAPS_BY_ID, cap_to_effect, cap_to_effect_world, false_response_fault, truncate_partial_effect
 class I5FullAFTInterface(I4EffectInterface):
     def __init__(self) -> None:
         super().__init__()
@@ -50,6 +50,10 @@ class I5FullAFTInterface(I4EffectInterface):
             c = self._idem[idem_key]
             return {"status":"success","invocation_id":c["invocation_id"],"idempotency_hit":True,"effect_class":c["effect_class"],"version":c["version"],"committed":True,"data":c["data"]}
         effect = cap_to_effect_world(capability_id, params, world)
+        if false_fault == "partial_success":
+            # Backend applies only part of the effect; the response channel
+            # below still reports full success.
+            truncate_partial_effect(effect)
         if "error" in effect: return {"status":"error","invocation_id":invocation_id,"error":effect["error"]}
         cap = CAPS_BY_ID.get(capability_id,{})
         et = cap.get("effect_type","")

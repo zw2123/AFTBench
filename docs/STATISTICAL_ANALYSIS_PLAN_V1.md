@@ -8,7 +8,7 @@ workload and the final canonical contrast regeneration).
 
 | Plan | Commit | Relationship to evidence |
 |------|--------|--------------------------|
-| SAP v1.0 (5 hypotheses, H1–H4) | `82ba77d` (plan decided at `d7fcf84`) | **Preregistered**: committed 3 commits before the v0.2 canonical evidence at `a04f4fb`. |
+| SAP v1.0 (5 hypotheses, H1–H4) | `82ba77d` (plan decided at `d7fcf84`) | **Preregistered**: committed 4 commits earlier in history than the v0.2 canonical evidence at `a04f4fb` (`82ba77d` → `bc01085` → `b971640` → `37a3546` → `a04f4fb`). |
 | SAP v1.1 (7 contrasts, adds H5) | `1e1f565` | **Pre-specified, not preregistered**: first exists in the same commit as the H5 workload, H5 results, and the 7-contrast analysis. |
 
 **Honesty rule:** H5 and the 7-contrast Holm family must be described in the
@@ -71,6 +71,27 @@ Benjamini–Hochberg FDR; endpoints: `tool_calls`, `transport_retries`,
 `logical_reexecutions`, `recovery_ms`, `verification_ms`,
 `runtime_overhead_ms`, `unknown_outcome_reconciled`.
 
+**H5-C robustness variant (secondary, NOT in the primary family):**
+`partial_success` lying response channel — the backend applies only part of
+the effect (list-valued sub-effects truncated to their first half) while the
+channel reports full success. Contrast: I5 vs I5-minus-verification on
+`incorrect_terminal_claim` (lower is better), task × seed matched pairs,
+reported with its own permutation p, never Holm-adjusted with H1a–H5.
+Motivation: extends H5 from all-or-nothing lies to partial effects, without
+expanding the confirmatory family.
+
+**Observable-execution secondary:** efficiency metrics from the existing
+resume/durable-state (interrupted_execution) and postcommit-loss workloads:
+`logical_reexecutions`, `transport_retries`, `recovery_ms`, `tool_calls`.
+Claim: observable primitives (resume, reconcile) eliminate unnecessary
+restarts and blind retries.
+
+**Structured-output secondary:** interaction-efficiency metrics from the
+existing discovery and effect-contract workloads: `tool_definition_tokens`,
+`transport_retries`, repair turns. Claim: structured schemas and structured
+errors (typed `error_code` + `current_version`) primarily improve interaction
+efficiency and repair determinism, not primary correctness.
+
 ## 5. Exclusions (a priori)
 
 1. Manipulation-invalid pairs excluded from primary analysis.
@@ -85,8 +106,9 @@ H2       resume/               (interruption_recovery, ordinary interruption)
 H3       durable_state/        (same run; process-state loss via M1 micro)
 H4a      effect_contract/      (postcommit_loss)
 H4b      effect_contract/      (stale_permission)
-H5       verification/         (NEW false-outcome workload: false_success,
-                                false_failure, partial-success)
+H5       verification/         (false-outcome workload: false_success,
+                                false_failure)
+H5-C     verification_partial/  (robustness variant: partial_success only)
 ```
 
 ## 7. Freeze Rule

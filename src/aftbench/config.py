@@ -22,6 +22,7 @@ class BenchmarkConfig:
     faults: list[str] = field(default_factory=lambda: ["none"])
     max_tasks_per_world: int = 3
     seeds: list[int] = field(default_factory=lambda: [42])
+    task_ids: list[str] | None = None
     agent: str = "scripted"
     resume_from: str | None = None
     cost_limit: float = 0.0

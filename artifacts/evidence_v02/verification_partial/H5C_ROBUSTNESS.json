@@ -1,0 +1,51 @@
+{
+  "status": "ROBUSTNESS (secondary, not in primary family)",
+  "design": "partial_success lying response channel; backend applies part of the effect",
+  "tasks": [
+    "ea_01_create_meeting",
+    "ea_07_partial_multi_recipient",
+    "ea_09_partial_success_invite"
+  ],
+  "contrast": {
+    "name": "H5C_partial_success_incorrect_claims",
+    "direction": "lower",
+    "valid_pairs": 9,
+    "n_task_clusters": 3,
+    "treatment_mean": 0.0,
+    "control_mean": 1.0,
+    "utility_paired_difference": 1.0,
+    "win_tie_loss": "9/0/0",
+    "task_clustered_95pct_CI": [
+      1.0,
+      1.0
+    ],
+    "raw_p_value": 0.0031,
+    "non_inferiority_delta": null,
+    "non_inferiority_p": null,
+    "adjusted_p_value": null
+  },
+  "per_interface": {
+    "I4": {
+      "runs": 9,
+      "incorrect_terminal_claims": "9/9",
+      "false_success_rate": 1.0,
+      "postconditions_unmet": "9/9"
+    },
+    "I5": {
+      "runs": 9,
+      "incorrect_terminal_claims": "0/9",
+      "false_success_rate": 0.0,
+      "postconditions_unmet": "9/9"
+    },
+    "I5-minus-verification": {
+      "runs": 9,
+      "incorrect_terminal_claims": "9/9",
+      "false_success_rate": 1.0,
+      "postconditions_unmet": "9/9"
+    }
+  },
+  "claim_corrected_events": {
+    "I5": 9
+  },
+  "robustness_note": "H5 primary covered false_success/false_failure; H5-C extends to partial_success. Both share the same mechanism: verification reconciles the agent's terminal belief with world truth."
+}

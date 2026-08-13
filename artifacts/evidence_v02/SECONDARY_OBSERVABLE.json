@@ -1,0 +1,133 @@
+{
+  "status": "SECONDARY (not in the primary Holm family)",
+  "design": "Observable execution primitives (resume, get_status, reconciliation) enable the agent to query backend status rather than blindly retrying after interruption or response loss.  Measured from existing resume (interrupted_execution) and postcommit_loss (lost_response_after_effect) workloads.",
+  "resume_recovery_efficiency": {
+    "I2": {
+      "runs": 24,
+      "tool_calls_mean": 1,
+      "logical_reexecutions_mean": 0,
+      "transport_retries_mean": 0,
+      "recovery_success_rate": "0/24",
+      "recovery_ms_mean": 0
+    },
+    "I3": {
+      "runs": 24,
+      "tool_calls_mean": 1,
+      "logical_reexecutions_mean": 0,
+      "transport_retries_mean": 0,
+      "recovery_success_rate": "24/24",
+      "recovery_ms_mean": 0
+    },
+    "I5": {
+      "runs": 24,
+      "tool_calls_mean": 1,
+      "logical_reexecutions_mean": 0,
+      "transport_retries_mean": 0,
+      "recovery_success_rate": "24/24",
+      "recovery_ms_mean": 0
+    },
+    "I5-minus-durable-state": {
+      "runs": 24,
+      "tool_calls_mean": 1,
+      "logical_reexecutions_mean": 1,
+      "transport_retries_mean": 0,
+      "recovery_success_rate": "0/24",
+      "recovery_ms_mean": 0
+    },
+    "I5-minus-resumable-invocation": {
+      "runs": 24,
+      "tool_calls_mean": 1,
+      "logical_reexecutions_mean": 1,
+      "transport_retries_mean": 0,
+      "recovery_success_rate": "0/24",
+      "recovery_ms_mean": 0
+    }
+  },
+  "resume_contrasts": {
+    "I3_vs_minus_resumable": {
+      "valid_pairs": 24,
+      "recovery_success": {
+        "treatment": "24/24",
+        "control": "0/24"
+      },
+      "logical_reexecutions": {
+        "treatment_mean": 0,
+        "control_mean": 1
+      }
+    },
+    "I5_vs_minus_resumable": {
+      "valid_pairs": 24,
+      "recovery_success": {
+        "treatment": "24/24",
+        "control": "0/24"
+      },
+      "logical_reexecutions": {
+        "treatment_mean": 0,
+        "control_mean": 1
+      }
+    },
+    "I5_vs_minus_durable": {
+      "valid_pairs": 24,
+      "recovery_success": {
+        "treatment": "24/24",
+        "control": "0/24"
+      },
+      "logical_reexecutions": {
+        "treatment_mean": 0,
+        "control_mean": 1
+      }
+    }
+  },
+  "postcommit_observability": {
+    "I0": {
+      "runs": 24,
+      "tool_calls_mean": 1.75,
+      "transport_retries_mean": 0.75,
+      "duplicate_effect_rate": "18/24",
+      "reconciliation_rate": "0/24"
+    },
+    "I1": {
+      "runs": 24,
+      "tool_calls_mean": 2,
+      "transport_retries_mean": 1,
+      "duplicate_effect_rate": "24/24",
+      "reconciliation_rate": "0/24"
+    },
+    "I3": {
+      "runs": 24,
+      "tool_calls_mean": 2,
+      "transport_retries_mean": 1,
+      "duplicate_effect_rate": "24/24",
+      "reconciliation_rate": "0/24"
+    },
+    "I4": {
+      "runs": 24,
+      "tool_calls_mean": 2,
+      "transport_retries_mean": 1,
+      "duplicate_effect_rate": "0/24",
+      "reconciliation_rate": "0/24"
+    },
+    "I5": {
+      "runs": 24,
+      "tool_calls_mean": 1,
+      "transport_retries_mean": 0,
+      "duplicate_effect_rate": "0/24",
+      "reconciliation_rate": "24/24"
+    },
+    "I5-minus-side-effect-contract": {
+      "runs": 24,
+      "tool_calls_mean": 1,
+      "transport_retries_mean": 0,
+      "duplicate_effect_rate": "0/24",
+      "reconciliation_rate": "24/24"
+    },
+    "I5-minus-verification": {
+      "runs": 24,
+      "tool_calls_mean": 1,
+      "transport_retries_mean": 0,
+      "duplicate_effect_rate": "0/24",
+      "reconciliation_rate": "24/24"
+    }
+  },
+  "interpretation": "Interfaces without observable execution (I5-minus-resumable-invocation, I5-minus-durable-state) trigger 1.0 unnecessary logical reexecutions under interruption.  Interfaces with resume (I3, I5) recover without restart.  Under dropped-response faults, I5's reconciliation primitive eliminates transport retries (0.0 vs 0.8-1.0 for I0/I1)."
+}

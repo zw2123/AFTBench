@@ -13,6 +13,7 @@ EVIDENCE_ROOTS = [
     Path("artifacts/evidence_v02/effect_contract/postcommit_loss"),
     Path("artifacts/evidence_v02/effect_contract/stale_permission"),
     Path("artifacts/evidence_v02/verification"),
+    Path("artifacts/evidence_v02/verification_partial"),
     Path("artifacts/evidence_v02/sqlite/production_like"),
 ]
 

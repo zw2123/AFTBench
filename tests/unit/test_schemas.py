@@ -204,7 +204,7 @@ class TestFaultSchedule:
             "interrupted_execution", "stale_state",
             "permission_drift", "event_loss",
             "handle_expiration", "tool_evolution",
-            "false_success", "false_failure",
+            "false_success", "false_failure", "partial_success",
         ]
         actual = [ft.value for ft in FaultType]
         assert actual == expected

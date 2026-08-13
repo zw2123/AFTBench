@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-08-13T17:26:21.051515",
+  "python_version": "Python 3.13.11",
+  "git_commit": "fc92cc5af0cd0c73ba7547e0806963093e76483b",
+  "git_status": "M ../data/tasks/external_actions_extended.yaml\n M ../docs/STATISTICAL_ANALYSIS_PLAN_V1.md\n M ../schemas/result.schema.json\n M ../src/aftbench/config.py\n M ../src/aftbench/interfaces/i0_shared.py\n M ../src/aftbench/interfaces/i4_effect.py\n M ../src/aftbench/interfaces/i5_full_aft.py\n M ../src/aftbench/runner.py\n M ../src/aftbench/schemas.py\n?? evidence_v02/verification_partial/\n?? ../configs/evidence/verification_partial.yaml\n?? ../scripts/analyze_h5c_robustness.py",
+  "git_diff_hash": "d252773867eb2ee9",
+  "source_tree_hash": "20746b4e393cd002",
+  "task_data_hash": "c8ff4699d645aec6",
+  "config_hash": "5acd64ab2c89aff0",
+  "schema_hash": "7b9553fb493a13ed",
+  "agent_version": "scripted-v1",
+  "interface_version": "v0.1-experiment-freeze"
+}

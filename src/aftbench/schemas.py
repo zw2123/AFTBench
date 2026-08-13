@@ -24,6 +24,7 @@ class FaultType(str, Enum):
     TOOL_EVOLUTION = "tool_evolution"
     FALSE_SUCCESS = "false_success"
     FALSE_FAILURE = "false_failure"
+    PARTIAL_SUCCESS = "partial_success"
     # Note: TOOL_CONFUSION and CATALOG_SCALE are workload factors, not faults
 
 

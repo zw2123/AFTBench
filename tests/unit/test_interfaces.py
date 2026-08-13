@@ -288,3 +288,52 @@ class TestI5FullAFTInterface:
         assert inv_id is not None
         evidence = iface.get_evidence(inv_id)
         assert evidence.get("status") in ("success", "ok")
+
+
+# ===========================================================================
+# partial_success lying response channel (H5-C robustness)
+# ===========================================================================
+
+@pytest.mark.skipif(not _HAS_INTERFACES, reason="interfaces not importable")
+class TestPartialSuccessResponseChannel:
+    def _context(self):
+        from aftbench.schemas import FaultSchedule, FaultType
+        return {"task": {}, "fault": FaultSchedule(
+            fault_id="partial_success", fault_type=FaultType.PARTIAL_SUCCESS,
+            target_world="external_actions", seed=42)}
+
+    def _world(self):
+        from aftbench.worlds.external_actions import ExternalActionsWorld
+        w = ExternalActionsWorld()
+        w.reset(seed=42)
+        return w
+
+    def _params(self):
+        return {
+            "event_id": "evt_h5c",
+            "title": "H5C",
+            "start_time": "2025-09-30T09:00",
+            "attendees": ["alice@acme.com", "bob@acme.com", "carol@acme.com"],
+        }
+
+    def test_i4_partial_success_applies_part_and_reports_success(self):
+        iface = I4EffectInterface()
+        w = self._world()
+        resp = iface.invoke("calendar.create_event", self._params(), w, self._context())
+        assert resp["status"] == "success"  # lying channel
+        evt = w.get_state()["entities"]["evt_h5c"]
+        assert len(evt["participants"]) == 1  # partial backend effect
+
+    def test_i5_partial_success_applies_part_and_reports_success(self):
+        iface = I5FullAFTInterface()
+        w = self._world()
+        resp = iface.invoke("calendar.create_event", self._params(), w, self._context())
+        assert resp["status"] == "success"  # lying channel
+        evt = w.get_state()["entities"]["evt_h5c"]
+        assert len(evt["participants"]) == 1  # partial backend effect
+
+    def test_single_element_lists_not_truncated(self):
+        from aftbench.interfaces.i0_shared import truncate_partial_effect
+        effect = {"attendees": ["only@acme.com"], "title": "x"}
+        truncate_partial_effect(effect)
+        assert effect["attendees"] == ["only@acme.com"]

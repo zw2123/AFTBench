@@ -78,7 +78,8 @@ def cap_to_effect_world(capability_id: str, params: dict, world: Any = None) -> 
 _VERSION_KEYS = ("version", "current_version", "error_code", "previous_version")
 
 def false_response_fault(context: dict | None) -> str | None:
-    """Return 'false_success' / 'false_failure' if the context carries the fault.
+    """Return 'false_success' / 'false_failure' / 'partial_success' if the
+    context carries the fault.
 
     False-outcome faults simulate a lying response channel: the interface
     reports a terminal status that does not match the backend effect.
@@ -92,7 +93,22 @@ def false_response_fault(context: dict | None) -> str | None:
         return "false_success"
     if fv in ("false_failure", "FALSE_FAILURE"):
         return "false_failure"
+    if fv in ("partial_success", "PARTIAL_SUCCESS"):
+        return "partial_success"
     return None
+
+
+def truncate_partial_effect(effect: dict) -> dict:
+    """PARTIAL_SUCCESS fault: the backend applies only part of the effect.
+
+    Every list-valued sub-effect (attendees, targets, recipients, ...) is
+    truncated to its first half (min 1 element), deterministically.  A
+    response channel under partial_success then reports full success.
+    """
+    for key, val in effect.items():
+        if isinstance(val, list) and len(val) > 1:
+            effect[key] = val[: max(1, len(val) // 2)]
+    return effect
 
 def strip_version_metadata(payload: dict) -> dict:
     """Remove version/error metadata from a payload, recursively.

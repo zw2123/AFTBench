@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 from .i3_lifecycle import I3LifecycleInterface
-from .i0_shared import CAPS, CAPS_BY_ID, cap_to_effect, cap_to_effect_world, false_response_fault
+from .i0_shared import CAPS, CAPS_BY_ID, cap_to_effect, cap_to_effect_world, false_response_fault, truncate_partial_effect
 _EFFECT_CLASS_MAP = {"crm":"mutable","ticketing":"mutable","cal":"reversible","msg":"irreversible","report":"reversible","job":"reversible","catalog":"read_only","pub":"irreversible"}
 _READ_ONLY_EFFECTS = {"get_catalog","search_catalog","check_job"}
 class I4EffectInterface(I3LifecycleInterface):
@@ -25,6 +25,10 @@ class I4EffectInterface(I3LifecycleInterface):
             return {"status":"success","invocation_id":invocation_id,"effect_class":"mutable",
                     "version":"1.0","committed":False,"data":{}}
         effect = cap_to_effect_world(capability_id, params, world)
+        if false_fault == "partial_success":
+            # Backend applies only part of the effect; the response channel
+            # below still reports full success.
+            truncate_partial_effect(effect)
         if "error" in effect: return {"status":"error","invocation_id":invocation_id,"error":effect["error"]}
         cap = CAPS_BY_ID.get(capability_id, {})
         et = cap.get("effect_type","")

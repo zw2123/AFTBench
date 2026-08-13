@@ -62,6 +62,7 @@
         "failure_before_effect",
         "false_success",
         "false_failure",
+        "partial_success",
         "tool_confusion",
         "catalog_scale"
       ]

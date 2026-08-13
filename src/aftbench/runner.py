@@ -52,6 +52,8 @@ class BenchmarkRunner:
         try:
             for world_name in self.config.worlds:
                 world_tasks = [t for t in tasks if t.world == world_name]
+                if self.config.task_ids:
+                    world_tasks = [t for t in world_tasks if t.task_id in self.config.task_ids]
                 
                 for task in world_tasks[:self.config.max_tasks_per_world]:
                     # Worlds whose state depends on task workload factors are
@@ -874,6 +876,7 @@ class BenchmarkRunner:
             "tool_evolution": FaultType.TOOL_EVOLUTION,
             "false_success": FaultType.FALSE_SUCCESS,
             "false_failure": FaultType.FALSE_FAILURE,
+            "partial_success": FaultType.PARTIAL_SUCCESS,
             # Note: tool_confusion and catalog_scale are workload factors, not faults
         }
         ft = fault_type_map.get(fault_name)

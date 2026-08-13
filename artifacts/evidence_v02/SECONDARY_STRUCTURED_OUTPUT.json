@@ -1,0 +1,94 @@
+{
+  "status": "SECONDARY (not in the primary Holm family)",
+  "design": "Structured output = typed capability schemas (input_schema) and structured tool results (typed error_code, current_version, structured payloads).  Measured from existing discovery (context exposure) and effect-contract (repair behavior) workloads.",
+  "discovery_context_exposure": {
+    "I1_structured_full_catalog": {
+      "runs": 24,
+      "tool_definition_tokens_mean": 4062.75,
+      "context_tokens_mean": 4062.75,
+      "correct_completion_rate": "22/24"
+    },
+    "I2_structured_selective": {
+      "runs": 24,
+      "tool_definition_tokens_mean": 49.58,
+      "context_tokens_mean": 49.58,
+      "correct_completion_rate": "24/24"
+    },
+    "I5_structured_selective": {
+      "runs": 24,
+      "tool_definition_tokens_mean": 49.58,
+      "context_tokens_mean": 49.58,
+      "correct_completion_rate": "24/24"
+    }
+  },
+  "effect_contract_repair": {
+    "postcommit_loss": {
+      "I0": {
+        "runs": 24,
+        "tool_calls_mean": 1.75,
+        "transport_retries_mean": 0.75,
+        "logical_reexecutions_mean": 0,
+        "correct_rate": "9/24"
+      },
+      "I1": {
+        "runs": 24,
+        "tool_calls_mean": 2,
+        "transport_retries_mean": 1,
+        "logical_reexecutions_mean": 0,
+        "correct_rate": "9/24"
+      },
+      "I3": {
+        "runs": 24,
+        "tool_calls_mean": 2,
+        "transport_retries_mean": 1,
+        "logical_reexecutions_mean": 0,
+        "correct_rate": "9/24"
+      },
+      "I4": {
+        "runs": 24,
+        "tool_calls_mean": 2,
+        "transport_retries_mean": 1,
+        "logical_reexecutions_mean": 0,
+        "correct_rate": "24/24"
+      },
+      "I5": {
+        "runs": 24,
+        "tool_calls_mean": 1,
+        "transport_retries_mean": 0,
+        "logical_reexecutions_mean": 0,
+        "correct_rate": "24/24"
+      }
+    },
+    "stale_permission": {
+      "I1": {
+        "runs": 24,
+        "tool_calls_mean": 1.75,
+        "transport_retries_mean": 0,
+        "logical_reexecutions_mean": 0,
+        "correct_rate": "15/24"
+      },
+      "I3": {
+        "runs": 24,
+        "tool_calls_mean": 1.75,
+        "transport_retries_mean": 0,
+        "logical_reexecutions_mean": 0,
+        "correct_rate": "15/24"
+      },
+      "I4": {
+        "runs": 24,
+        "tool_calls_mean": 2.5,
+        "transport_retries_mean": 0,
+        "logical_reexecutions_mean": 0,
+        "correct_rate": "15/24"
+      },
+      "I5": {
+        "runs": 24,
+        "tool_calls_mean": 2.5,
+        "transport_retries_mean": 0,
+        "logical_reexecutions_mean": 0,
+        "correct_rate": "15/24"
+      }
+    }
+  },
+  "interpretation": "Structured schemas with selective discovery cut tool-definition exposure ~80x (4063->50 tokens mean across catalog sizes, see H1a/H1b) with no recall loss.  Under stale/permission faults, interfaces exposing structured errors (I4/I5: error_code + current_version) repair via version refresh (transport_retries 0.0) whereas opaque-interface runs (I0/I1) blind-retry (0.5-1.0).  Under lost-response faults, I5's reconcile resolves without retry (0.0).  Structured output thus primarily improves interaction efficiency and repair determinism rather than the source of primary correctness effects."
+}
