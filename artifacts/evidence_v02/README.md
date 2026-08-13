@@ -18,6 +18,6 @@ analysis plan (`docs/STATISTICAL_ANALYSIS_PLAN_V1.md`, v1.1).
 H2 and H3 draw their contrasts from the same canonical execution (the
 profile includes all treatment and control interfaces).
 
-`CANONICAL_CONTRASTS.{json,md}` holds the 7 pre-registered contrasts with
+`CANONICAL_CONTRASTS.{json,md}` holds the 7 pre-specified contrasts with
 direction-aware W/T/L, task-clustered bootstrap CIs, and Holm-corrected
 p-values (`scripts/analyze_canonical_v02.py`).

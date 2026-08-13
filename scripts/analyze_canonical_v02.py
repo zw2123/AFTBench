@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Canonical evidence v0.2 contrast analysis (v1.1 statistical plan).
 
-Computes the 7 pre-registered hypothesis contrasts defined in
+Computes the 7 pre-specified hypothesis contrasts defined in
 docs/STATISTICAL_ANALYSIS_PLAN_V1.md from the canonical evidence in
 artifacts/evidence_v02/, using task × seed matched pairs.
 
@@ -277,7 +277,7 @@ def main() -> None:
 
     # Markdown
     lines = [
-        "# AFTBench Canonical Evidence v0.2 — Pre-registered Contrasts (SAP v1.1)",
+        "# AFTBench Canonical Evidence v0.2 — Pre-specified Contrasts (SAP v1.1)",
         "",
         "W/T/L counts utility (direction-aware).  p-values from paired sign-flip",
         f"permutation ({N_PERMS} perms, seed {SEED}); CIs are task-clustered bootstrap",

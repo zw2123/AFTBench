@@ -1,4 +1,4 @@
-# AFTBench Canonical Evidence v0.2 — Pre-registered Contrasts (SAP v1.1)
+# AFTBench Canonical Evidence v0.2 — Pre-specified Contrasts (SAP v1.1)
 
 W/T/L counts utility (direction-aware).  p-values from paired sign-flip
 permutation (10000 perms, seed 42); CIs are task-clustered bootstrap

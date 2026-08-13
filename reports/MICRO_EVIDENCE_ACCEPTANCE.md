@@ -129,7 +129,7 @@ total_us:            21,278
 ## Next Steps
 
 1. Run `git add . && git commit -m "Validate AFTBench micro causal semantics v0.2"` — **DONE** (`a04f4fb`)
-2. Create `docs/STATISTICAL_ANALYSIS_PLAN_V1.md` — **DONE** (v1.1, 7 pre-registered contrasts)
+2. Create `docs/STATISTICAL_ANALYSIS_PLAN_V1.md` — **DONE** (v1.1, 7 pre-specified contrasts)
 3. Run canonical evidence v0.2 experiments — **DONE** (`artifacts/evidence_v02/`, 1032 runs, ledger consistent)
 4. Generate paper evidence artifacts — **IN PROGRESS** (`reports/CANONICAL_EVIDENCE_V02.md`)
 
@@ -150,5 +150,5 @@ total_us:            21,278
 | H5 verification (false-outcome workload) | supported (Holm p=0.0003) |
 | SQLite qualitative replication | 0% impl errors, safety advantage replicated |
 
-Deterministic evidence v0.2: **all 7 pre-registered contrasts supported.**
+Deterministic evidence v0.2: **all 7 pre-specified contrasts supported.**
 Pre-v0.2 evidence archived to `artifacts/legacy/` and marked invalidated.

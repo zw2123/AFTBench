@@ -4,7 +4,7 @@
 **Source baseline:** commit `a04f4fb` (v0.2 measurement-validity fixes)
 **Test suite:** 421/421 passed
 **Evidence root:** `artifacts/evidence_v02/`
-**Pre-registered plan:** `docs/STATISTICAL_ANALYSIS_PLAN_V1.md` (v1.1)
+**Analysis plan:** `docs/STATISTICAL_ANALYSIS_PLAN_V1.md` (v1.1; H1–H4 preregistered in SAP v1.0, H5 + 7-contrast family pre-specified)
 
 ---
 
@@ -19,7 +19,7 @@
 | Smoke profile | 72 runs OK |
 | Test suite | 421/421 |
 
-## 2. Pre-registered Contrasts (SAP v1.1)
+## 2. Primary Contrasts (SAP v1.1, pre-specified family)
 
 Matched task × seed pairs; direction-aware W/T/L; paired sign-flip
 permutation p (10,000 perms); task-clustered bootstrap 95% CI; Holm
@@ -131,4 +131,4 @@ defects, all fixed (421/421 tests):
 - `artifacts/evidence_v02/CANONICAL_CONTRASTS.{json,md}`
 - `artifacts/audit_v02/{experiment_ledger.json,fault_funnel.csv,consistency_report.md}`
 - `scripts/analyze_canonical_v02.py` (contrast + inference pipeline)
-- `docs/STATISTICAL_ANALYSIS_PLAN_V1.md` (v1.1, frozen at `a04f4fb`)
+- `docs/STATISTICAL_ANALYSIS_PLAN_V1.md` (v1.1, pre-specified, frozen at `1e1f565`)

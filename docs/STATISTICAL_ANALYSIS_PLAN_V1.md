@@ -1,11 +1,25 @@
 # AFTBench Statistical Analysis Plan — v1.1
 
-**Status:** Frozen before the H5 false-outcome workload and the final
-canonical contrast regeneration.
-**Frozen at:** commit `a04f4fb` (v0.2 measurement-validity fix + canonical evidence)
+**Status:** Pre-specified analysis plan for the final evidence freeze.
+**Frozen at:** commit `1e1f565` (co-committed with the H5 false-outcome
+workload and the final canonical contrast regeneration).
+
+**Preregistration provenance (git-verifiable):**
+
+| Plan | Commit | Relationship to evidence |
+|------|--------|--------------------------|
+| SAP v1.0 (5 hypotheses, H1–H4) | `82ba77d` (plan decided at `d7fcf84`) | **Preregistered**: committed 3 commits before the v0.2 canonical evidence at `a04f4fb`. |
+| SAP v1.1 (7 contrasts, adds H5) | `1e1f565` | **Pre-specified, not preregistered**: first exists in the same commit as the H5 workload, H5 results, and the 7-contrast analysis. |
+
+**Honesty rule:** H5 and the 7-contrast Holm family must be described in the
+paper as *pre-specified* (a priori analysis plan for the final evidence
+freeze), **not** as preregistered. H1a/H1b/H2/H3/H4a/H4b derive their
+pre-registered status from SAP v1.0; only their endpoint directions and the
+non-inferiority margin were fixed in v1.1.
+
 **Revision history:**
-- v1.0 (frozen at `d7fcf84`): 5 primary hypotheses, pair keys, Holm/BH split.
-- v1.1 (this document): primary hypotheses split into **7 pre-registered
+- v1.0 (committed at `82ba77d`): 5 primary hypotheses, pair keys, Holm/BH split.
+- v1.1 (this document): primary hypotheses split into **7 pre-specified
   contrasts** with explicit endpoint directions, a frozen non-inferiority
   margin for recall, and a frozen W/T/L utility convention.
 
@@ -77,6 +91,6 @@ H5       verification/         (NEW false-outcome workload: false_success,
 
 ## 7. Freeze Rule
 
-After v1.1 evidence is generated, benchmark semantics may NOT be changed
-to improve results. Any semantic change requires a new benchmark version
-and full re-run.
+After the v1.1 evidence freeze (`1e1f565`), benchmark semantics may NOT be
+changed to improve results. Any semantic change requires a new benchmark
+version and full re-run.
