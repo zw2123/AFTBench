@@ -1,0 +1,17 @@
+{
+  "experiment": "sqlite_micro",
+  "n_runs": 24,
+  "impl_error_rate": 0.0,
+  "classifications": {
+    "operational_success": 24
+  },
+  "n_passed": 1,
+  "n_total": 1,
+  "checks": [
+    {
+      "label": "implementation error rate < 5%",
+      "passed": true,
+      "detail": "got 0.0%"
+    }
+  ]
+}
