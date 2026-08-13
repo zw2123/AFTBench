@@ -99,6 +99,8 @@
               "ENTITY_AMBIGUITY",
               "PERMISSION_DRIFT",
               "FAILURE_BEFORE_EFFECT",
+              "FALSE_SUCCESS",
+              "FALSE_FAILURE",
               "TOOL_CONFUSION",
               "CATALOG_SCALE"
             ]

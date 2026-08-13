@@ -60,6 +60,8 @@
         "entity_ambiguity",
         "permission_drift",
         "failure_before_effect",
+        "false_success",
+        "false_failure",
         "tool_confusion",
         "catalog_scale"
       ]

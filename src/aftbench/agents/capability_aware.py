@@ -406,7 +406,7 @@ class CapabilityAwareAgent(Agent):
                 return "reconcile"
             return "abort"
 
-        if error_type in ("PERMISSION_DENIED", "NOT_FOUND", "INVALID_STATE"):
+        if error_type in ("PERMISSION_DENIED", "NOT_FOUND", "INVALID_STATE", "INTERNAL_FAILURE"):
             # Safe refusal
             self._record_capability_usage("safe_refusal", {
                 "error_type": error_type,

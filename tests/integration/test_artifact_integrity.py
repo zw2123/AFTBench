@@ -5,7 +5,21 @@ import json
 from pathlib import Path
 
 
-EVIDENCE_DIR = Path("artifacts/evidence_runs")
+# Canonical evidence v0.2 roots (hypothesis directories + nested profiles).
+EVIDENCE_ROOTS = [
+    Path("artifacts/evidence_v02/discovery"),
+    Path("artifacts/evidence_v02/resume"),
+    Path("artifacts/evidence_v02/durable_state"),
+    Path("artifacts/evidence_v02/effect_contract/postcommit_loss"),
+    Path("artifacts/evidence_v02/effect_contract/stale_permission"),
+    Path("artifacts/evidence_v02/verification"),
+    Path("artifacts/evidence_v02/sqlite/production_like"),
+]
+
+def iter_experiment_dirs():
+    for root in EVIDENCE_ROOTS:
+        if root.is_dir():
+            yield root
 
 
 class TestArtifactIntegrity:
@@ -13,7 +27,7 @@ class TestArtifactIntegrity:
 
     def test_artifact_hash_matches_source(self):
         """Verify source_state.json contains required hashes."""
-        for exp_dir in EVIDENCE_DIR.iterdir():
+        for exp_dir in iter_experiment_dirs():
             if not exp_dir.is_dir():
                 continue
             source_state_path = exp_dir / "source_state.json"
@@ -42,7 +56,7 @@ class TestArtifactIntegrity:
 
     def test_result_has_trace(self):
         """Verify every result row has a corresponding trace."""
-        for exp_dir in EVIDENCE_DIR.iterdir():
+        for exp_dir in iter_experiment_dirs():
             if not exp_dir.is_dir():
                 continue
             results_path = exp_dir / "results.csv"
@@ -67,7 +81,7 @@ class TestArtifactIntegrity:
 
     def test_trace_has_terminal_event(self):
         """Verify every trace has a terminal event (run_end)."""
-        for exp_dir in EVIDENCE_DIR.iterdir():
+        for exp_dir in iter_experiment_dirs():
             if not exp_dir.is_dir():
                 continue
             traces_path = exp_dir / "traces.jsonl"
@@ -91,7 +105,7 @@ class TestArtifactIntegrity:
 
     def test_report_recomputes_from_results(self):
         """Verify paired analysis can be recomputed from raw results."""
-        for exp_dir in EVIDENCE_DIR.iterdir():
+        for exp_dir in iter_experiment_dirs():
             if not exp_dir.is_dir():
                 continue
             results_path = exp_dir / "results.csv"

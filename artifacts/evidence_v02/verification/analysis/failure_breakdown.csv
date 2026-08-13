@@ -1,6 +1,6 @@
 category,value,count
-world,external_actions,45
-interface,I0,15
-interface,I1,15
-interface,I3,15
-fault,lost_response_after_effect,45
+world,external_actions,72
+interface,I4,24
+interface,I5,24
+interface,I5-minus-verification,24
+fault,false_success,72

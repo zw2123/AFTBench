@@ -52,6 +52,7 @@ artifacts/cache/
 artifacts/codex_run_5h/
 artifacts/evidence_run_5h/
 artifacts/evidence_runs/
+artifacts/legacy/evidence_runs/
 artifacts/finalization_4h/
 artifacts/llm_pilot/
 artifacts/qwen_4h/

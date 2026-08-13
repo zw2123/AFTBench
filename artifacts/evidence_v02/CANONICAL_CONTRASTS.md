@@ -1,209 +1,116 @@
-# AFTBench Canonical Evidence v0.2 — Pre-registered Contrasts
+# AFTBench Canonical Evidence v0.2 — Pre-registered Contrasts (SAP v1.1)
 
-Contrasts follow the frozen statistical analysis plan
-(`docs/STATISTICAL_ANALYSIS_PLAN_V1.md`).  All contrasts use
-task × seed matched pairs from `artifacts/evidence_v02/`.
+W/T/L counts utility (direction-aware).  p-values from paired sign-flip
+permutation (10000 perms, seed 42); CIs are task-clustered bootstrap
+(2000 resamples); primary family corrected with Holm (m = 7).
+H1b uses the frozen non-inferiority margin delta = 0.1.
 
-## Summary
+| Contrast | Direction | Pairs | T mean | C mean | Util diff | W/T/L | CI95 | raw p | Holm p |
+|----------|-----------|------:|-------:|-------:|----------:|-------|------|------:|-------:|
+| H1a_context_exposure | lower | 24 | 49.5833 | 4062.75 | 4013.1667 | 24/0/0 | [705.25, 8395.3333] | 0.0001 | 0.0007 |
+| H1b_recall_non_inferiority | higher | 24 | 1.0 | 0.9167 | 0.0833 | 2/22/0 | [0.0, 0.1667] | 0.49875 | 0.49875 |
+| H2_resume_recovery | higher | 24 | 1.0 | 0.0 | 1.0 | 24/0/0 | [1.0, 1.0] | 0.0001 | 0.0006 |
+| H3_durable_state_recovery | higher | 24 | 1.0 | 0.0 | 1.0 | 24/0/0 | [1.0, 1.0] | 0.0001 | 0.0005 |
+| H4a_duplicate_effects | lower | 24 | 0.0 | 0.75 | 0.75 | 18/6/0 | [0.375, 1.0] | 0.0001 | 0.0004 |
+| H4b_unsafe_commits | lower | 24 | 0.0 | 0.625 | 0.625 | 15/9/0 | [0.25, 0.875] | 0.0003 | 0.0006 |
+| H5_incorrect_terminal_claims | lower | 48 | 0.0 | 1.0 | 1.0 | 48/0/0 | [1.0, 1.0] | 0.0001 | 0.0003 |
 
-| Contrast | Valid pairs | Treatment | Control | Paired diff | W/T/L |
-|----------|------------:|----------:|--------:|------------:|-------|
-| H1 context exposure (I2 vs I1) | 24 | 49.583 | 4062.750 | -4013.167 | 0/0/24 |
-| H1 recall (I2 vs I1) | 24 | 1.000 | 0.917 | 0.083 | 2/22/0 |
-| H2 recovery (I5 vs I5-minus-resume) | 24 | 1.000 | 0.000 | 1.000 | 24/0/0 |
-| H3 recovery (I5 vs I5-minus-durable) | 24 | 1.000 | 0.000 | 1.000 | 24/0/0 |
-| H4 duplicates (I4 vs I0) | 24 | 0.000 | 0.750 | -0.750 | 0/6/18 |
-| H4b unsafe commits (I5 vs I1) | 24 | 0.625 | 0.625 | 0.000 | 6/12/6 |
-| H5 correctness (I5 vs I5-minus-verification) | 24 | 1.000 | 1.000 | 0.000 | 0/24/0 |
+H1b non-inferiority p (H0: recall loss >= 0.1): **0.0001**
 
-## Details
+## Meta
 
 ```json
 {
-  "H1_discovery_tokens": {
-    "valid_pairs": 24,
-    "treatment_mean": 49.583333333333336,
-    "control_mean": 4062.75,
-    "paired_difference": -4013.1666666666665,
-    "win_tie_loss": "0/0/24",
-    "min": -13402.0,
-    "max": -42.0
+  "discovery_tokens": {
+    "I1": 4062.8,
+    "I2": 49.6,
+    "I5": 49.6,
+    "I5-minus-selective-discovery": 4060.8
   },
-  "H1_discovery_recall": {
-    "valid_pairs": 24,
-    "treatment_mean": 1.0,
-    "control_mean": 0.9166666666666666,
-    "paired_difference": 0.08333333333333333,
-    "win_tie_loss": "2/22/0",
-    "min": 0.0,
-    "max": 1.0
+  "discovery_correct": {
+    "I1": "22/24",
+    "I2": "24/24",
+    "I5": "24/24",
+    "I5-minus-selective-discovery": "22/24"
   },
-  "H1_meta": {
-    "n_task_clusters": 8,
-    "context_tokens_by_interface": {
-      "I1": 4062.8,
-      "I2": 49.6,
-      "I5": 49.6,
-      "I5-minus-selective-discovery": 4060.8
+  "resume_recovery": {
+    "I2": "0/24",
+    "I3": "24/24",
+    "I5": "24/24",
+    "I5-minus-durable-state": "0/24",
+    "I5-minus-resumable-invocation": "0/24"
+  },
+  "resume_outcomes": {
+    "I2": {
+      "completed_as_requested": 24
     },
-    "correct_by_interface": {
-      "I1": "22/24",
-      "I2": "24/24",
-      "I5": "24/24",
-      "I5-minus-selective-discovery": "22/24"
+    "I3": {
+      "completed_as_requested": 24
+    },
+    "I5": {
+      "completed_as_requested": 24
+    },
+    "I5-minus-durable-state": {
+      "failure": 24
+    },
+    "I5-minus-resumable-invocation": {
+      "failure": 24
     }
   },
-  "H2_resume": {
-    "valid_pairs": 24,
-    "treatment_mean": 1.0,
-    "control_mean": 0.0,
-    "paired_difference": 1.0,
-    "win_tie_loss": "24/0/0",
-    "min": 1.0,
-    "max": 1.0
+  "postcommit_duplicates": {
+    "I0": "18/24",
+    "I1": "24/24",
+    "I3": "24/24",
+    "I4": "0/24",
+    "I5": "0/24",
+    "I5-minus-side-effect-contract": "0/24",
+    "I5-minus-verification": "0/24"
   },
-  "H3_durable_state": {
-    "valid_pairs": 24,
-    "treatment_mean": 1.0,
-    "control_mean": 0.0,
-    "paired_difference": 1.0,
-    "win_tie_loss": "24/0/0",
-    "min": 1.0,
-    "max": 1.0
+  "postcommit_reconciliation": {
+    "I0": "0/24",
+    "I1": "0/24",
+    "I3": "0/24",
+    "I4": "0/24",
+    "I5": "24/24",
+    "I5-minus-side-effect-contract": "24/24",
+    "I5-minus-verification": "24/24"
   },
-  "H2_H3_meta": {
-    "n_task_clusters": 8,
-    "recovery_by_interface": {
-      "I2": "0/24",
-      "I3": "24/24",
-      "I5": "24/24",
-      "I5-minus-durable-state": "0/24",
-      "I5-minus-resumable-invocation": "0/24"
-    },
-    "outcome_by_interface": {
-      "I2": {
-        "completed_as_requested": 24
-      },
-      "I3": {
-        "completed_as_requested": 24
-      },
-      "I5": {
-        "completed_as_requested": 24
-      },
-      "I5-minus-durable-state": {
-        "failure": 24
-      },
-      "I5-minus-resumable-invocation": {
-        "failure": 24
-      }
-    }
+  "stale_unsafe_commits": {
+    "I1": "15/24",
+    "I3": "18/24",
+    "I4": "0/24",
+    "I5": "0/24",
+    "I5-minus-side-effect-contract": "18/24"
   },
-  "H4_duplicate_I4_vs_I0": {
-    "valid_pairs": 24,
-    "treatment_mean": 0.0,
-    "control_mean": 0.75,
-    "paired_difference": -0.75,
-    "win_tie_loss": "0/6/18",
-    "min": -1.0,
-    "max": 0.0
+  "stale_safely_aborted": {
+    "I1": "0/24",
+    "I3": "0/24",
+    "I4": "6/24",
+    "I5": "6/24",
+    "I5-minus-side-effect-contract": "0/24"
   },
-  "H4_meta": {
-    "n_task_clusters": 8,
-    "duplicates_by_interface": {
-      "I0": "18/24",
-      "I1": "24/24",
-      "I3": "24/24",
-      "I4": "0/24",
-      "I5": "0/24",
-      "I5-minus-side-effect-contract": "0/24",
-      "I5-minus-verification": "0/24"
-    },
-    "reconciliation_by_interface": {
-      "I0": "0/24",
-      "I1": "0/24",
-      "I3": "0/24",
-      "I4": "0/24",
-      "I5": "24/24",
-      "I5-minus-side-effect-contract": "24/24",
-      "I5-minus-verification": "24/24"
-    }
+  "verification_incorrect_claims": {
+    "I4": "48.0/48",
+    "I5": "0.0/48",
+    "I5-minus-verification": "48.0/48"
   },
-  "H4_unsafe_I5_vs_I1": {
-    "valid_pairs": 24,
-    "treatment_mean": 0.625,
-    "control_mean": 0.625,
-    "paired_difference": 0.0,
-    "win_tie_loss": "6/12/6",
-    "min": -1.0,
-    "max": 1.0
+  "sqlite_duplicates": {
+    "I0": "9/36",
+    "I1": "9/36",
+    "I4": "0/36",
+    "I5": "0/36"
   },
-  "H4_unsafe_commits_I1_vs_I5": {
-    "valid_pairs": 24,
-    "treatment_mean": 0.625,
-    "control_mean": 0.0,
-    "paired_difference": 0.625,
-    "win_tie_loss": "15/9/0",
-    "min": 0.0,
-    "max": 1.0
+  "sqlite_unsafe": {
+    "I0": "3/36",
+    "I1": "3/36",
+    "I4": "0/36",
+    "I5": "0/36"
   },
-  "H4b_meta": {
-    "n_task_clusters": 8,
-    "unsafe_committed_by_interface": {
-      "I1": "15/24",
-      "I3": "18/24",
-      "I4": "0/24",
-      "I5": "0/24",
-      "I5-minus-side-effect-contract": "18/24"
-    },
-    "safely_aborted_by_interface": {
-      "I1": "0/24",
-      "I3": "0/24",
-      "I4": "6/24",
-      "I5": "6/24",
-      "I5-minus-side-effect-contract": "0/24"
-    }
-  },
-  "H5_verification": {
-    "valid_pairs": 24,
-    "treatment_mean": 1.0,
-    "control_mean": 1.0,
-    "paired_difference": 0.0,
-    "win_tie_loss": "0/24/0",
-    "min": 0.0,
-    "max": 0.0
-  },
-  "H5_meta": {
-    "n_task_clusters": 8,
-    "correct_by_interface": {
-      "I0": "9/24",
-      "I1": "9/24",
-      "I3": "9/24",
-      "I4": "24/24",
-      "I5": "24/24",
-      "I5-minus-side-effect-contract": "24/24",
-      "I5-minus-verification": "24/24"
-    }
-  },
-  "SQLITE_meta": {
-    "n_runs": 144,
-    "duplicates_by_interface": {
-      "I0": "9/36",
-      "I1": "9/36",
-      "I4": "0/36",
-      "I5": "0/36"
-    },
-    "unsafe_committed_by_interface": {
-      "I0": "3/36",
-      "I1": "3/36",
-      "I4": "0/36",
-      "I5": "0/36"
-    },
-    "correct_by_interface": {
-      "I0": "36/36",
-      "I1": "36/36",
-      "I4": "36/36",
-      "I5": "36/36"
-    }
+  "sqlite_correct": {
+    "I0": "36/36",
+    "I1": "36/36",
+    "I4": "36/36",
+    "I5": "36/36"
   }
 }
 ```

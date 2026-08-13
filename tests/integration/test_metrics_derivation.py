@@ -5,11 +5,21 @@ import json
 from pathlib import Path
 
 
-EVIDENCE_DIR = Path("artifacts/evidence_runs")
+EVIDENCE_MAP = {
+    "discovery_frontier": Path("artifacts/evidence_v02/discovery"),
+    "interruption_recovery": Path("artifacts/evidence_v02/resume"),
+    "postcommit_loss": Path("artifacts/evidence_v02/effect_contract/postcommit_loss"),
+    "stale_permission": Path("artifacts/evidence_v02/effect_contract/stale_permission"),
+    "production_like": Path("artifacts/evidence_v02/sqlite/production_like"),
+    "primitive_ablations": Path("artifacts/legacy/evidence_runs/primitive_ablations"),
+}
+
+def _evidence_dir(exp_name: str) -> Path:
+    return EVIDENCE_MAP.get(exp_name, Path("artifacts/evidence_runs") / exp_name)
 
 
 def _load_results(exp_name: str) -> list[dict]:
-    results_path = EVIDENCE_DIR / exp_name / "results.csv"
+    results_path = _evidence_dir(exp_name) / "results.csv"
     if not results_path.exists():
         pytest.skip(f"{exp_name} results not found")
     with open(results_path) as f:
@@ -17,7 +27,7 @@ def _load_results(exp_name: str) -> list[dict]:
 
 
 def _load_traces(exp_name: str) -> list[dict]:
-    traces_path = EVIDENCE_DIR / exp_name / "traces.jsonl"
+    traces_path = _evidence_dir(exp_name) / "traces.jsonl"
     if not traces_path.exists():
         pytest.skip(f"{exp_name} traces not found")
     with open(traces_path) as f:

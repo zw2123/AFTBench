@@ -282,18 +282,18 @@
 
 | Metric | Value |
 |--------|-------|
-| Expected runs | 168 |
-| Observed runs | 168 |
+| Expected runs | 144 |
+| Observed runs | 144 |
 | Successful | 0 |
-| Failed | 45 |
+| Failed | 72 |
 
 ### Trace consistency
 
 | Check | Result |
 |-------|--------|
 | Traces match results | ✅ |
-| Result run IDs | 168 |
-| Trace run IDs | 168 |
+| Result run IDs | 144 |
+| Trace run IDs | 144 |
 | Missing from traces | 0 |
 | Extra in traces | 0 |
 
@@ -301,40 +301,30 @@
 
 | Stage | Count | % of configured |
 |-------|-------|-----------------|
-| Fault configured | 168 | 100% |
-| Request accepted | 168 | 100.0% |
-| Backend started | 258 | 153.6% |
-| Effect committed | 228 | 135.7% |
-| Response generated | 258 | 153.6% |
-| Response dropped | 162 | 96.4% |
-
-> ℹ️ 162/168 runs (96.4%) reached response_dropped stage.
-
-### Recovery funnel
-
-| Stage | Count | % of eligible |
-|-------|-------|---------------|
-| Recovery eligible | 168 | 100% |
-| Recovery attempted | 72 | 42.9% |
-| Recovery succeeded | 72 | 42.9% |
+| Fault configured | 144 | 100% |
+| Request accepted | 144 | 100.0% |
+| Backend started | 144 | 100.0% |
+| Effect committed | 72 | 50.0% |
+| Response generated | 144 | 100.0% |
+| Response dropped | 0 | 0.0% |
 
 ### Error classification
 
 | Type | Count |
 |------|-------|
-| Total failures | 45 |
-| Failure by interface: I0 | 15 |
-| Failure by interface: I1 | 15 |
-| Failure by interface: I3 | 15 |
+| Total failures | 72 |
+| Failure by interface: I4 | 24 |
+| Failure by interface: I5 | 24 |
+| Failure by interface: I5-minus-verification | 24 |
 
 ### Oracle outcome distribution
 
-- completed_as_requested: 123
-- failure: 45
+- completed_as_requested: 72
+- failure: 72
 
 ### Fault types used
 
-`lost_response_after_effect`
+`false_failure, false_success`
 
 ---
 ## sqlite/production_like
@@ -393,6 +383,6 @@
 
 | Metric | Value |
 |--------|-------|
-| Total expected runs | 1056 |
-| Total observed runs | 1056 |
+| Total expected runs | 1032 |
+| Total observed runs | 1032 |
 | All checks passed | ✅ YES |

@@ -76,7 +76,7 @@ def check_selective_discovery() -> Dict[str, Any]:
 
     # 1c. Trace-level: check context_tokens differ in discovery_frontier
     import csv
-    rpath = Path("artifacts/evidence_runs/discovery_frontier/results.csv")
+    rpath = Path("artifacts/evidence_v02/discovery/results.csv")
     if rpath.exists():
         with open(rpath) as f:
             rows = list(csv.DictReader(f))

@@ -1,0 +1,28 @@
+profile: verification
+seed: 42
+output_dir: artifacts/evidence_v02/verification
+worlds:
+  - external_actions
+
+interfaces:
+  - I4
+  - I5
+  - I5-minus-verification
+
+faults:
+  - false_success
+  - false_failure
+
+max_tasks_per_world: 8
+seeds: [42, 123, 456]
+
+agent: scripted
+
+analysis:
+  compute_confidence_intervals: true
+  confidence_level: 0.95
+  bootstrap_samples: 1000
+
+report:
+  format: [csv, json]
+  include_trace_examples: false

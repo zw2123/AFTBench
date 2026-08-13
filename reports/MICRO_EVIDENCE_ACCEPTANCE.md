@@ -85,8 +85,7 @@
 | Check | Result |
 |-------|--------|
 | Safety calibration | **4/4 PASS** ✅ |
-| Manipulation checks | **7/7 PASS** ✅ |
-| Resume (ordinary interruption) | **PASS** ✅ |
+| Manipulation checks | **7/7 PASS** ✅ || Resume (ordinary interruption) | **PASS** ✅ |
 | Resume (process-state loss) | **PASS** ✅ |
 | Post-commit (commit-before-drop) | **PASS** ✅ |
 | Post-commit (idempotency activated) | **PASS** ✅ |
@@ -129,7 +128,27 @@ total_us:            21,278
 
 ## Next Steps
 
-1. Run `git add . && git commit -m "Validate AFTBench micro causal semantics v0.2"`
-2. Create `docs/STATISTICAL_ANALYSIS_PLAN_V1.md`
-3. Run canonical evidence v0.2 experiments
-4. Generate paper evidence artifacts
+1. Run `git add . && git commit -m "Validate AFTBench micro causal semantics v0.2"` — **DONE** (`a04f4fb`)
+2. Create `docs/STATISTICAL_ANALYSIS_PLAN_V1.md` — **DONE** (v1.1, 7 pre-registered contrasts)
+3. Run canonical evidence v0.2 experiments — **DONE** (`artifacts/evidence_v02/`, 1032 runs, ledger consistent)
+4. Generate paper evidence artifacts — **IN PROGRESS** (`reports/CANONICAL_EVIDENCE_V02.md`)
+
+## Final Status (2026-08-13, post-debug)
+
+| Gate | Result |
+|------|--------|
+| Tests | 421/421 |
+| Calibration | 13/13 (positive + negative) |
+| Manipulation | 8/8 (incl. i3_vs_i5) |
+| Canonical ledger | consistent (0 mismatches) |
+| H1a context exposure | supported (Holm p=0.0007) |
+| H1b recall non-inferiority | δ=0.10, p=0.0001 |
+| H2 resume recovery | supported (Holm p=0.0006) |
+| H3 durable-state recovery | supported (Holm p=0.0005) |
+| H4a duplicate effects | supported (Holm p=0.0004) |
+| H4b unsafe commits | supported (Holm p=0.0006) |
+| H5 verification (false-outcome workload) | supported (Holm p=0.0003) |
+| SQLite qualitative replication | 0% impl errors, safety advantage replicated |
+
+Deterministic evidence v0.2: **all 7 pre-registered contrasts supported.**
+Pre-v0.2 evidence archived to `artifacts/legacy/` and marked invalidated.

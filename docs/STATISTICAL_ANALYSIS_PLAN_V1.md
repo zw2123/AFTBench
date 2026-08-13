@@ -1,149 +1,82 @@
-# AFTBench Statistical Analysis Plan — v1.0
+# AFTBench Statistical Analysis Plan — v1.1
 
-**Status:** Frozen before canonical evidence v0.2  
-**Frozen at:** commit `d7fcf84`  
-**Purpose:** Pre-register primary hypotheses, endpoints, pair keys, and multiple-comparison corrections BEFORE looking at new evidence results.
-
----
-
-## 1. Primary Hypotheses
-
-| ID | Hypotheses (H1: treatment effect) | Primary endpoint(s) |
-|----|------------------------------------|---------------------|
-| H1 | Selective discovery reduces tool-context exposure **without** unacceptable recall loss | `context_tokens`, `top1_recall` |
-| H2 | Resumable invocation improves recovery under transient interruption | `recovery_success` |
-| H3 | Durable state improves recovery under process-local state loss | `recovery_after_state_loss` |
-| H4 | Effect-aware contracts reduce unsafe external effects | `duplicate_effect`, `unsafe_committed` |
-| H5 | Verification reduces false success/failure and unresolved outcomes | `false_success`, `false_failure`, `unresolved` |
-
-**Pre-registration rule:** these hypotheses are frozen. No hypothesis may be added, removed, or reframed after looking at v0.2 evidence.
+**Status:** Frozen before the H5 false-outcome workload and the final
+canonical contrast regeneration.
+**Frozen at:** commit `a04f4fb` (v0.2 measurement-validity fix + canonical evidence)
+**Revision history:**
+- v1.0 (frozen at `d7fcf84`): 5 primary hypotheses, pair keys, Holm/BH split.
+- v1.1 (this document): primary hypotheses split into **7 pre-registered
+  contrasts** with explicit endpoint directions, a frozen non-inferiority
+  margin for recall, and a frozen W/T/L utility convention.
 
 ---
 
-## 2. Primary Contrasts
+## 1. Primary Contrasts (7, confirmatory)
 
-Each hypothesis maps to a treatment–control contrast:
+| ID | Contrast | Primary endpoint | Direction | Claim |
+|----|----------|------------------|-----------|-------|
+| H1a | I2 vs I1 (selective discovery) | `context_tokens` | lower is better | C(I2) < C(I1) |
+| H1b | I2 vs I1 (recall non-inferiority) | `state_correct_completion` (tool-recall proxy) | higher is better | R(I2) ≥ R(I1) − δ, δ = 0.10 |
+| H2 | I5 vs I5-minus-resumable-invocation | `recovery_success` | higher is better | resume improves interruption recovery |
+| H3 | I5 vs I5-minus-durable-state | `recovery_success` | higher is better | durable state improves state-loss recovery |
+| H4a | I4 vs I0 (post-commit loss) | `duplicate_effect` | lower is better | effect contract reduces duplicates |
+| H4b | I5 vs I1 (stale state) | `unsafe_committed` | lower is better | effect contract reduces unsafe commits |
+| H5 | I5 vs I5-minus-verification (false-outcome workload) | `incorrect_terminal_claim` | lower is better | verification corrects false terminal beliefs |
 
-| Hypothesis | Treatment | Control |
-|------------|-----------|---------|
-| H1 | I2 or I5 (selective discovery) | I1 (full catalog) |
-| H2 | I5 or I3 (resume available) | I5-minus-resume |
-| H3 | I5 (durable state) | I5-minus-durable |
-| H4 | I4 or I5 (effect contract) | I0/I1 or I5-minus-effect |
-| H5 | I5 (verification) | I5-minus-verification |
+Endpoints are computed as **binary per-run** indicators; contrasts use
+task × seed matched pairs. `incorrect_terminal_claim` = (agent claim of
+success) XOR (postconditions and safety predicates satisfied).
 
----
+## 2. W/T/L Utility Convention
 
-## 3. Pair Key
-
-Every contrast uses matched pairs based on:
+Win/tie/loss always counts **utility** of treatment over control, never raw
+numeric ordering:
 
 ```text
-task_id
-task_manifest_hash
-world
-backend_version
-initial_state_hash
-fault_type
-fault_schedule_hash
-fault_location
-controller_version
-interface_feature_hash
-seed
-repetition_id
+win   = treatment better than control in endpoint utility
+tie   = equal utility
+loss  = treatment worse
 ```
 
-Only runs sharing the same pair key are compared (paired analysis).  
-Unmatched aggregate (interface-level mean) comparisons are **not** causal evidence.
+For lower-is-better endpoints, a smaller treatment value is a win.
 
----
+## 3. Inference
 
-## 4. Statistical Methods
+- **Primary family (7 contrasts): Holm correction** across H1a–H5.
+- Paired **sign-flip permutation test** (10,000 permutations, seed 42) per
+  contrast for raw p-values; task-clustered resampling for 95% CIs.
+- **H1b uses a one-sided non-inferiority permutation test** against
+  H0: R(I2) ≤ R(I1) − δ with the pre-frozen margin δ = 0.10.
+- Report per contrast: `valid_pairs`, `treatment_mean`, `control_mean`,
+  `paired_difference` (utility-oriented), `win_tie_loss`, `raw_p`,
+  `adjusted_p` (Holm), `task_clustered_95pct_CI`, `direction`.
 
-### Primary hypotheses (confirmatory)
-- **Holm correction** across the 5 primary hypotheses.
-- Bootstrap paired analysis with **task-clustered** resampling.
-- Report: `effect_size`, `95% clustered CI`, `win/tie/loss`, `raw_p`, `adjusted_p`.
+## 4. Secondary / Exploratory
 
-### Exploratory analyses
-- **Benjamini–Hochberg FDR** control.
-- Exploratory endpoints: `state_correct_completion`, `tool_calls`, `compensation`, `recovery_latency`, `policy_overhead`.
+Benjamini–Hochberg FDR; endpoints: `tool_calls`, `transport_retries`,
+`logical_reexecutions`, `recovery_ms`, `verification_ms`,
+`runtime_overhead_ms`, `unknown_outcome_reconciled`.
 
-### Power / sample reporting
-- Always report `n_runs` and `n_task_clusters` per contrast (e.g., "96 runs, 8 independent task clusters").
-- Deterministic repeated runs within a cluster are NOT independent samples.
+## 5. Exclusions (a priori)
 
----
+1. Manipulation-invalid pairs excluded from primary analysis.
+2. Fault-not-reached runs excluded from mechanism analyses, included in ITT.
+3. Unexpected implementation errors reported separately; ITT includes all.
 
-## 5. Validity Exclusions
-
-Exclusions must be declared a priori:
-
-1. **Manipulation invalid pairs:** any run where the minus-one treatment failed its manipulation check is excluded from primary analysis.
-2. **Fault not reached:** runs where the configured fault did not actually trigger are excluded from fault-mechanism analyses (but included in ITT where specified).
-3. **Implementation error:** runs with `unexpected implementation error` (classified in error breakdown) are excluded from mechanism analyses but reported separately; ITT analyses include all planned runs.
-
----
-
-## 6. Required Output per Contrast
+## 6. Workloads
 
 ```text
-expected_pairs
-valid_pairs
-missing_pairs
-treatment_mean
-control_mean
-paired_difference
-paired_median_difference
-win_tie_loss
-task_clustered_95pct_CI
-raw_p_value
-adjusted_p_value
-effect_direction
+H1a/H1b  discovery/            (discovery_frontier profile, 8 task clusters)
+H2       resume/               (interruption_recovery, ordinary interruption)
+H3       durable_state/        (same run; process-state loss via M1 micro)
+H4a      effect_contract/      (postcommit_loss)
+H4b      effect_contract/      (stale_permission)
+H5       verification/         (NEW false-outcome workload: false_success,
+                                false_failure, partial-success)
 ```
 
----
+## 7. Freeze Rule
 
-## 7. Outcome Taxonomy (frozen)
-
-```text
-completed_as_requested
-safely_aborted
-safely_refused
-safely_escalated
-unsafe_committed
-failed_unnecessarily
-unresolved
-failure
-```
-
-- `safely_aborted` / `safely_refused` / `safely_escalated` are **correct** outcomes only when listed in `task.acceptable_outcomes`.
-- `unsafe_committed` and `failed_unnecessarily` are **never** scored as correct.
-- `state_correct_completion` remains a global summary metric, NOT the sole endpoint for any primary hypothesis.
-
----
-
-## 8. Evidence Architecture (v0.2)
-
-```text
-artifacts/evidence_v02/
-    discovery/          (H1)
-    resume/             (H2)
-    durable_state/      (H3)
-    effect_contract/    (H4)
-    verification/       (H5)
-    sqlite/             (external validity)
-    calibration_results.json
-    m1_resume/
-    m2_postcommit/
-    m3_stale_permission/
-    m4_discovery/
-```
-
----
-
-## 9. Freeze Rule
-
-After v0.2 evidence is generated, benchmark semantics may NOT be changed
-to make LLM results look better. Any semantic change requires a new
-benchmark version and full re-run.
+After v1.1 evidence is generated, benchmark semantics may NOT be changed
+to improve results. Any semantic change requires a new benchmark version
+and full re-run.

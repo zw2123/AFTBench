@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 from .i4_effect import I4EffectInterface, _EFFECT_CLASS_MAP, _READ_ONLY_EFFECTS
-from .i0_shared import CAPS, CAPS_BY_ID, cap_to_effect, cap_to_effect_world
+from .i0_shared import CAPS, CAPS_BY_ID, cap_to_effect, cap_to_effect_world, false_response_fault
 class I5FullAFTInterface(I4EffectInterface):
     def __init__(self) -> None:
         super().__init__()
@@ -19,6 +19,11 @@ class I5FullAFTInterface(I4EffectInterface):
         # Check for lost_response_after_effect fault
         # This fault should occur AFTER the effect is committed
         lost_response_fault = False
+        false_fault = false_response_fault(context)
+        if false_fault == "false_success":
+            # Report success without applying the effect.
+            return {"status":"success","invocation_id":invocation_id,"effect_class":"mutable",
+                    "version":"1.0","committed":False,"data":{}}
         if fault is not None:
             ft = getattr(fault,"fault_type",None)
             fv = ft.value if hasattr(ft,"value") else str(ft) if ft is not None else str(fault)
@@ -79,6 +84,14 @@ class I5FullAFTInterface(I4EffectInterface):
             self._evidence[invocation_id].append({"type":"fault_injected","fault":"lost_response_after_effect"})
             self._evidence[invocation_id].append({"type":"response_dropped"})
             return {"status":"unknown_outcome","invocation_id":invocation_id,"error":"Response lost after effect.","effect_committed":True}
+
+        if false_fault == "false_failure":
+            # The effect committed, but the response channel reports failure.
+            self._evidence[invocation_id].append({"type":"fault_injected","fault":"false_failure"})
+            return {"status":"error","invocation_id":invocation_id,"lifecycle_state":"completed",
+                    "effect_class":ec,"version":v,
+                    "error":"Internal failure (response channel fault)",
+                    "error_code":"INTERNAL_FAILURE"}
         
         if idem_key: self._idem[idem_key] = {"invocation_id":invocation_id,"effect_class":ec,"version":v,"data":payload}
         return {"status":"success","invocation_id":invocation_id,"lifecycle_state":"completed","effect_class":ec,"version":v,"committed":True,"data":payload}

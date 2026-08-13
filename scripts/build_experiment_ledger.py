@@ -493,7 +493,7 @@ def main():
     """Build ledger for all experiments."""
     import argparse
     parser = argparse.ArgumentParser(description="Build AFTBench experiment ledger")
-    parser.add_argument("--evidence-dir", default="artifacts/evidence_runs",
+    parser.add_argument("--evidence-dir", default="artifacts/legacy/evidence_runs",
                         help="Root directory of experiment outputs")
     parser.add_argument("--experiments", default=None,
                         help="Comma-separated experiment subdirectory names "

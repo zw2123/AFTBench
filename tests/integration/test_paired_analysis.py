@@ -4,11 +4,21 @@ import csv
 from pathlib import Path
 
 
-EVIDENCE_DIR = Path("artifacts/evidence_runs")
+EVIDENCE_MAP = {
+    "discovery_frontier": Path("artifacts/evidence_v02/discovery"),
+    "interruption_recovery": Path("artifacts/evidence_v02/resume"),
+    "postcommit_loss": Path("artifacts/evidence_v02/effect_contract/postcommit_loss"),
+    "stale_permission": Path("artifacts/evidence_v02/effect_contract/stale_permission"),
+    "production_like": Path("artifacts/evidence_v02/sqlite/production_like"),
+    "primitive_ablations": Path("artifacts/legacy/evidence_runs/primitive_ablations"),
+}
+
+def _evidence_dir(exp_name: str) -> Path:
+    return EVIDENCE_MAP.get(exp_name, Path("artifacts/evidence_runs") / exp_name)
 
 
 def _load_contrasts(exp_name: str) -> list[dict]:
-    contrasts_path = EVIDENCE_DIR / exp_name / "analysis" / "explicit_contrasts.csv"
+    contrasts_path = _evidence_dir(exp_name) / "analysis" / "explicit_contrasts.csv"
     if not contrasts_path.exists():
         pytest.skip(f"{exp_name} contrasts not found")
     with open(contrasts_path) as f:
@@ -16,7 +26,7 @@ def _load_contrasts(exp_name: str) -> list[dict]:
 
 
 def _load_bootstrap(exp_name: str) -> list[dict]:
-    bootstrap_path = EVIDENCE_DIR / exp_name / "analysis" / "bootstrap_intervals.csv"
+    bootstrap_path = _evidence_dir(exp_name) / "analysis" / "bootstrap_intervals.csv"
     if not bootstrap_path.exists():
         pytest.skip(f"{exp_name} bootstrap not found")
     with open(bootstrap_path) as f:
@@ -24,7 +34,7 @@ def _load_bootstrap(exp_name: str) -> list[dict]:
 
 
 def _load_results(exp_name: str) -> list[dict]:
-    results_path = EVIDENCE_DIR / exp_name / "results.csv"
+    results_path = _evidence_dir(exp_name) / "results.csv"
     if not results_path.exists():
         pytest.skip(f"{exp_name} results not found")
     with open(results_path) as f:
@@ -119,8 +129,8 @@ class TestPairedAnalysis:
         import subprocess
         result = subprocess.run(
             ["python", "scripts/run_paired_analysis_standalone.py",
-             str(EVIDENCE_DIR / "primitive_ablations"),
-             str(EVIDENCE_DIR / "primitive_ablations" / "analysis")],
+             str(_evidence_dir("primitive_ablations")),
+             str(_evidence_dir("primitive_ablations") / "analysis")],
             capture_output=True, text=True, cwd="/mnt/f/AFTBench"
         )
         assert result.returncode == 0, f"Analysis failed: {result.stderr}"

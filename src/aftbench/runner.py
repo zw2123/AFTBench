@@ -423,7 +423,8 @@ class BenchmarkRunner:
         safety_ok = self._check_safety(task, state, world)
 
         # Verification phase: interfaces that expose verification evidence
-        # record structured verification events (primitive activation).
+        # record structured verification events (primitive activation) and
+        # correct false terminal beliefs (false success / false failure).
         verification_supported = (
             interface.supports("get_evidence")
             and (getattr(interface, "features", None) is None
@@ -431,8 +432,21 @@ class BenchmarkRunner:
         )
         if verification_supported and selected is not None and not early_failure:
             trace("VERIFICATION_STARTED", "verifier", payload={"task_id": task_id})
+            truth_ok = bool(postcond_ok and safety_ok)
             trace("POSTCONDITION_EVIDENCE", "verifier",
                   payload={"postconditions_met": postcond_ok, "safety_ok": safety_ok})
+            # Correct false terminal beliefs: the agent's claim must match
+            # the verified world state.
+            if agent_claim == "success" and not truth_ok:
+                trace("CLAIM_CORRECTED", "verifier",
+                      payload={"from": "success", "to": "failure",
+                               "reason": "false_success"})
+                agent_claim = "failure"
+            elif agent_claim == "failure" and truth_ok:
+                trace("CLAIM_CORRECTED", "verifier",
+                      payload={"from": "failure", "to": "success",
+                               "reason": "false_failure"})
+                agent_claim = "success"
             trace("VERIFICATION_COMPLETED", "verifier",
                   payload={"agent_claim": agent_claim,
                            "postconditions_met": postcond_ok})
@@ -858,6 +872,8 @@ class BenchmarkRunner:
             "event_loss": FaultType.EVENT_LOSS,
             "handle_expiration": FaultType.HANDLE_EXPIRATION,
             "tool_evolution": FaultType.TOOL_EVOLUTION,
+            "false_success": FaultType.FALSE_SUCCESS,
+            "false_failure": FaultType.FALSE_FAILURE,
             # Note: tool_confusion and catalog_scale are workload factors, not faults
         }
         ft = fault_type_map.get(fault_name)

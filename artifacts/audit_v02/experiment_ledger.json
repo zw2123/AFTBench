@@ -331,67 +331,65 @@
   },
   {
     "experiment": "verification",
-    "total_runs": 168,
+    "total_runs": 144,
     "successful_runs": 0,
-    "failed_runs": 45,
+    "failed_runs": 72,
     "by_interface": {
-      "I0": 24,
-      "I1": 24,
-      "I3": 24,
-      "I4": 24,
-      "I5": 24,
-      "I5-minus-side-effect-contract": 24,
-      "I5-minus-verification": 24
+      "I4": 48,
+      "I5": 48,
+      "I5-minus-verification": 48
     },
     "by_world": {
-      "external_actions": 168
+      "external_actions": 144
     },
     "by_fault": {
-      "lost_response_after_effect": 168
+      "false_success": 72,
+      "false_failure": 72
     },
     "by_seed": {
-      "42": 56,
-      "123": 56,
-      "456": 56
+      "42": 48,
+      "123": 48,
+      "456": 48
     },
     "fault_funnel": {
-      "fault_configured": 168,
-      "request_accepted": 168,
-      "backend_started": 258,
-      "effect_committed": 228,
-      "response_generated": 258,
-      "response_dropped": 162
+      "fault_configured": 144,
+      "request_accepted": 144,
+      "backend_started": 144,
+      "effect_committed": 72,
+      "response_generated": 144,
+      "response_dropped": 0
     },
     "recovery_funnel": {
-      "recovery_eligible": 168,
-      "recovery_attempted": 72,
-      "recovery_succeeded": 72
+      "recovery_eligible": 0,
+      "recovery_attempted": 0,
+      "recovery_succeeded": 0
     },
     "error_classification": {
-      "total_failures": 45,
+      "total_failures": 72,
       "by_interface": {
-        "I0": 15,
-        "I1": 15,
-        "I3": 15
+        "I4": 24,
+        "I5": 24,
+        "I5-minus-verification": 24
       }
     },
     "validation": {
-      "result_count": 168,
-      "trace_count": 2550,
-      "result_run_ids": 168,
-      "trace_run_ids": 168,
+      "result_count": 144,
+      "trace_count": 1560,
+      "result_run_ids": 144,
+      "trace_run_ids": 144,
       "missing_from_traces": 0,
       "extra_in_traces": 0,
       "traces_match_results": true,
-      "expected_runs": 168,
-      "observed_runs": 168,
+      "expected_runs": 144,
+      "observed_runs": 144,
       "run_count_matches": true,
       "fault_type_values": [
-        "lost_response_after_effect"
+        "false_failure",
+        "false_success"
       ],
       "oracle_outcome_distribution": {
-        "failure": 45,
-        "completed_as_requested": 123
+        "failure": 72,
+        "completed_as_requested": 72
       },
       "missing_required_fields": []
     }

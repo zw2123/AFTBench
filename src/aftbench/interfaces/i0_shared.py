@@ -77,6 +77,23 @@ def cap_to_effect_world(capability_id: str, params: dict, world: Any = None) -> 
 
 _VERSION_KEYS = ("version", "current_version", "error_code", "previous_version")
 
+def false_response_fault(context: dict | None) -> str | None:
+    """Return 'false_success' / 'false_failure' if the context carries the fault.
+
+    False-outcome faults simulate a lying response channel: the interface
+    reports a terminal status that does not match the backend effect.
+    """
+    fault = (context or {}).get("fault")
+    if fault is None:
+        return None
+    ft = getattr(fault, "fault_type", None)
+    fv = ft.value if hasattr(ft, "value") else str(ft) if ft is not None else str(fault)
+    if fv in ("false_success", "FALSE_SUCCESS"):
+        return "false_success"
+    if fv in ("false_failure", "FALSE_FAILURE"):
+        return "false_failure"
+    return None
+
 def strip_version_metadata(payload: dict) -> dict:
     """Remove version/error metadata from a payload, recursively.
 

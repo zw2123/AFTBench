@@ -1,6 +1,6 @@
 profile: primitive_ablations
 seed: 42
-output_dir: artifacts/evidence_runs/primitive_ablations
+output_dir: artifacts/legacy/evidence_runs/primitive_ablations
 worlds:
   - enterprise_records
   - long_running_jobs

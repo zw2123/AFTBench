@@ -22,6 +22,8 @@ class FaultType(str, Enum):
     EVENT_LOSS = "event_loss"
     HANDLE_EXPIRATION = "handle_expiration"
     TOOL_EVOLUTION = "tool_evolution"
+    FALSE_SUCCESS = "false_success"
+    FALSE_FAILURE = "false_failure"
     # Note: TOOL_CONFUSION and CATALOG_SCALE are workload factors, not faults
 
 

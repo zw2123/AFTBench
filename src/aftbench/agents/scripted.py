@@ -207,7 +207,7 @@ class ScriptedAgent(Agent):
                 return "reconcile"
             return "abort"
 
-        if error_type in ("PERMISSION_DENIED", "NOT_FOUND", "INVALID_STATE"):
+        if error_type in ("PERMISSION_DENIED", "NOT_FOUND", "INVALID_STATE", "INTERNAL_FAILURE"):
             # Non-retryable
             return "abort"
 
