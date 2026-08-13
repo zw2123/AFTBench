@@ -89,6 +89,31 @@
 | Discovery (fallback) | **PASS** ✅ |
 | Timing (placeholders) | **0** ✅ |
 | Timing (stage metrics) | **PASS** ✅ |
+| SQLite (impl error) | **0.0% < 5%** ✅ |
+| SQLite (exact-once replication) | **24/24 success** ✅ |
+
+## SQLite Micro Experiment (Phase 8)
+
+| Check | Value |
+|-------|-------|
+| Runs | 24 |
+| Interfaces | I0, I1, I4, I5 |
+| Faults | none, lost_response_after_effect, stale_state |
+| Operational success | 24/24 |
+| Implementation error rate | **0.0%** ✅ |
+
+## Structured Timing (Phase 7)
+
+```text
+discovery_us:        21,023   (world state + discovery)
+interface_us:             3   (invoke)
+verification_us:        132   (post-run checks)
+other_us:               118
+total_us:            21,278
+```
+
+- No placeholder values remain.
+- Stage decomposition recorded as `stage_timing` trace events.
 
 **Ready for canonical evidence v0.2: YES** ✅
 
