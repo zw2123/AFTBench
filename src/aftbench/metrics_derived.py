@@ -83,7 +83,7 @@ def compute_residual_effect(world, task_outcome: str, compensation_attempted: bo
     A residual effect occurs when a task fails/cancels but uncompensated
     state changes remain.
     """
-    if task_outcome in ('success', 'committed'):
+    if task_outcome in ('success', 'committed', 'completed_as_requested'):
         return False
     
     if not compensation_attempted:
