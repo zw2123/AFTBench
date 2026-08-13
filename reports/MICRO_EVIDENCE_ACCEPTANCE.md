@@ -4,6 +4,16 @@
 **HEAD:** `eda86afa61b76338c212250afffebc50774fc8f3`  
 **Test suite:** 421/421 passed
 
+> **Correction (2026-08-13, post-debug):** the M3 micro experiment's own
+> check "unsafe_committed appears" FAILED (0 unsafe outcomes — see
+> `artifacts/evidence_v02/m3_stale_permission/m3_results.json`), although the
+> original verdict below called the taxonomy "working correctly". The
+> stale-state fault was not actually simulated (dead FaultInjector, empty
+> task parameters, vacuous postconditions). All of these defects were fixed
+> this session; the regenerated canonical evidence
+> (`reports/CANONICAL_EVIDENCE_V02.md`) now shows 15–18/24 unsafe commits for
+> weak interfaces and 0/24 for I4/I5 under stale_state.
+
 ---
 
 ## Gate Status

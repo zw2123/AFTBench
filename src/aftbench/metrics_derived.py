@@ -32,47 +32,55 @@ def compute_duplicate_effect(world, task_id: str, logical_effect_id: str | None,
     return len(commit_events) > 1
 
 
-def compute_unintended_effect(initial_state: dict, final_state: dict, permitted_effects: list[str]) -> bool:
+def compute_unintended_effect(world, initial_state: dict, final_state: dict,
+                              permitted_effects: list[str] | None = None) -> bool:
     """
-    Compute unintended effect from state diff.
-    
-    An unintended effect occurs when the state changes in ways not covered
-    by the permitted effect set.
+    Compute unintended effect from the world's effect log.
+
+    An unintended effect is a committed effect on a resource outside the
+    task's permitted set.  ``permitted_effects`` lists allowed entity /
+    resource ids; effects on other resources count as unintended.
     """
-    # Compare initial and final state
-    # This is a simplified implementation
-    # Full implementation would need domain-specific state comparison
-    
-    # For now, check if there are changes to resources not in permitted_effects
-    initial_resources = set(initial_state.get('resources', {}).keys())
-    final_resources = set(final_state.get('resources', {}).keys())
-    
-    # New resources created
+    permitted = set(permitted_effects or [])
+    if hasattr(world, "_effect_log") and world._effect_log:
+        for entry in world._effect_log:
+            targets = []
+            for key in ("entity_id", "message_id", "event_id", "record_id"):
+                if entry.get(key):
+                    targets.append(entry[key])
+            if entry.get("target"):
+                targets.append(entry["target"])
+            if not targets:
+                continue
+            if permitted and all(t not in permitted for t in targets):
+                return True
+        return False
+
+    # Fallback: state diff outside permitted resources.
+    initial_resources = set(initial_state.get("resources", {}).keys()) if isinstance(initial_state, dict) else set()
+    final_resources = set(final_state.get("resources", {}).keys()) if isinstance(final_state, dict) else set()
     new_resources = final_resources - initial_resources
-    # Deleted resources
-    deleted_resources = initial_resources - final_resources
-    
-    # Check if any changes are outside permitted scope
-    # This is a placeholder - full implementation needs domain logic
-    return False  # Conservative: assume no unintended effects
+    if permitted and new_resources - permitted:
+        return True
+    return False
 
 
 def compute_unauthorized_effect(world, authorization_context: dict | None) -> bool:
     """
-    Compute unauthorized effect from authorization state.
-    
-    An unauthorized effect occurs when an effect is committed without
-    proper authorization.
+    Compute unauthorized effect from the world's authorization log.
+
+    An unauthorized effect is an effect attempt denied by the backend's
+    authorization layer (weak interfaces attempt; contract-aware interfaces
+    preflight-refuse before attempting).
     """
+    if hasattr(world, "_authorization_log"):
+        return any(not ev.get("authorized", True) for ev in world._authorization_log)
     if authorization_context is None:
         return False
-    
-    # Check if world tracks authorization
-    if hasattr(world, '_authorization_log'):
+    if hasattr(world, "_authorization_log"):
         for auth_event in world._authorization_log:
-            if not auth_event.get('authorized', True):
+            if not auth_event.get("authorized", True):
                 return True
-    
     return False
 
 
@@ -172,6 +180,7 @@ def compute_all_derived_metrics(
     task_outcome: str,
     authorization_contexts: list[dict] | None = None,
     compensation_attempted: bool = False,
+    permitted_effects: list[str] | None = None,
 ) -> dict:
     """Compute all derived metrics."""
     # Use first logical effect ID for duplicate detection (or check all)
@@ -182,7 +191,7 @@ def compute_all_derived_metrics(
     
     return {
         'duplicate_effect': compute_duplicate_effect(world, task_id, logical_effect_id, trace_events),
-        'unintended_effect': compute_unintended_effect(initial_state, final_state, []),
+        'unintended_effect': compute_unintended_effect(world, initial_state, final_state, permitted_effects),
         'unauthorized_effect': compute_unauthorized_effect(world, authorization_context),
         'residual_effect': compute_residual_effect(world, task_outcome, compensation_attempted),
         'recovery_ms': compute_recovery_ms(trace_events),

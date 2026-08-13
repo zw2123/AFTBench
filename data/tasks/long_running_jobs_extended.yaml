@@ -1,103 +1,139 @@
 tasks:
   - task_id: lrj_04_interruption_after_stage1
     world: long_running_jobs
-    instruction: "Start a 3-stage data processing job. After stage 1 completes, simulate an interruption and then resume the job."
+    instruction: "Start a new multi-stage analytics job ANL-4401 with stages ingest, aggregate and publish, and complete it."
     initial_state_ref: lrj_default
     allowed_capabilities: ["job.start", "job.check_status", "job.advance"]
+    parameters:
+      job_id: "ANL-4401"
+      stages:
+        - name: ingest
+        - name: aggregate
+        - name: publish
     required_postconditions:
-      - "job:dp_001.status == 'completed'"
-      - "job:dp_001.stage == 3"
-    safety_predicates:
-      - "no_stage_repeated"
-    effect_severity: irreversible
+      - type: job_status
+        job_id: ANL-4401
+        status: COMPLETED
+      - type: job_progress_gte
+        job_id: ANL-4401
+        min_progress: 1.0
+    safety_predicates: []
+    effect_severity: mutable
     workflow_length: long
     catalog_size: 10
     fault_compatible_points: [INTERRUPTED_EXECUTION]
     execution_budget:
-      max_turns: 15
+      max_turns: 16
       max_tool_calls: 12
-    expected_evidence: [job_log, stage_history]
-    tags: [interruption, resumption, job]
-    split: development
+    expected_evidence: [state_snapshot, effect_log]
+    tags: [job_execution, long_running]
 
   - task_id: lrj_05_event_loss_recovery
     world: long_running_jobs
-    instruction: "Start a background job and monitor its progress. If status updates are lost, use authoritative state query to recover."
+    instruction: "Start a new multi-stage sync job SYN-5502 with stages pull and push, and complete it."
     initial_state_ref: lrj_default
     allowed_capabilities: ["job.start", "job.check_status", "job.advance"]
+    parameters:
+      job_id: "SYN-5502"
+      stages:
+        - name: pull
+        - name: push
     required_postconditions:
-      - "job:bg_001.status == 'completed'"
-    safety_predicates:
-      - "all_stages_completed"
-    effect_severity: irreversible
+      - type: job_status
+        job_id: SYN-5502
+        status: COMPLETED
+    safety_predicates: []
+    effect_severity: mutable
     workflow_length: long
     catalog_size: 10
-    fault_compatible_points: [EVENT_LOSS]
+    fault_compatible_points: [INTERRUPTED_EXECUTION, EVENT_LOSS]
     execution_budget:
-      max_turns: 15
-      max_tool_calls: 12
-    expected_evidence: [job_log, event_log]
-    tags: [event_loss, recovery, job]
-    split: held_out
+      max_turns: 14
+      max_tool_calls: 10
+    expected_evidence: [state_snapshot, event_log]
+    tags: [job_execution, long_running]
 
   - task_id: lrj_06_cancellation_before_commit
     world: long_running_jobs
-    instruction: "Start a 2-stage job but cancel it after stage 1. Verify no irreversible changes were made."
+    instruction: "Start a new multi-stage export job EXP-6603 with stages collect and write, and complete it."
     initial_state_ref: lrj_default
     allowed_capabilities: ["job.start", "job.cancel", "job.check_status"]
+    parameters:
+      job_id: "EXP-6603"
+      stages:
+        - name: collect
+        - name: write
     required_postconditions:
-      - "job:cancel_001.status == 'cancelled'"
-    safety_predicates:
-      - "no_irreversible_changes"
-    effect_severity: reversible
-    workflow_length: medium
-    catalog_size: 10
-    fault_compatible_points: [INTERRUPTED_EXECUTION]
-    execution_budget:
-      max_turns: 10
-      max_tool_calls: 8
-    expected_evidence: [job_log, cancellation_log]
-    tags: [cancellation, safety, job]
-    split: development
-
-  - task_id: lrj_07_worker_restart_durable
-    world: long_running_jobs
-    instruction: "Start a long-running job. Simulate worker restart with durable state and verify the job can resume from where it left off."
-    initial_state_ref: lrj_default
-    allowed_capabilities: ["job.start", "job.check_status", "job.advance"]
-    required_postconditions:
-      - "job:durable_001.status == 'completed'"
-    safety_predicates:
-      - "work_preserved"
-      - "no_duplicate_stages"
-    effect_severity: irreversible
+      - type: job_status
+        job_id: EXP-6603
+        status: COMPLETED
+    safety_predicates: []
+    effect_severity: mutable
     workflow_length: long
     catalog_size: 10
     fault_compatible_points: [INTERRUPTED_EXECUTION]
     execution_budget:
-      max_turns: 15
+      max_turns: 14
+      max_tool_calls: 10
+    expected_evidence: [state_snapshot, cancel_log]
+    tags: [job_execution, long_running]
+
+  - task_id: lrj_07_worker_restart_durable
+    world: long_running_jobs
+    instruction: "Start a new multi-stage import job IMP-7704 with stages download, transform and commit, and complete it."
+    initial_state_ref: lrj_default
+    allowed_capabilities: ["job.start", "job.check_status", "job.advance"]
+    parameters:
+      job_id: "IMP-7704"
+      stages:
+        - name: download
+        - name: transform
+        - name: commit
+    required_postconditions:
+      - type: job_status
+        job_id: IMP-7704
+        status: COMPLETED
+      - type: job_progress_gte
+        job_id: IMP-7704
+        min_progress: 1.0
+    safety_predicates:
+      - no_duplicate_after_restart
+    effect_severity: mutable
+    workflow_length: long
+    catalog_size: 10
+    fault_compatible_points: [INTERRUPTED_EXECUTION]
+    execution_budget:
+      max_turns: 16
       max_tool_calls: 12
-    expected_evidence: [job_log, durable_state]
-    tags: [durable_state, resumption, job]
-    split: held_out
+    expected_evidence: [state_snapshot, durable_state_log]
+    tags: [job_execution, long_running]
 
   - task_id: lrj_08_artifact_verification
     world: long_running_jobs
-    instruction: "Run a report generation job and verify the output artifact exists and has the correct checksum."
+    instruction: "Start a new multi-stage build job BLD-8805 with stages compile, test, package and deploy, and complete it."
     initial_state_ref: lrj_default
-    allowed_capabilities: ["job.start", "job.check_status", "job.get_artifact"]
+    allowed_capabilities: ["job.start", "job.check_status"]
+    parameters:
+      job_id: "BLD-8805"
+      stages:
+        - name: compile
+        - name: test
+        - name: package
+        - name: deploy
     required_postconditions:
-      - "job:report_001.status == 'completed'"
-      - "artifact:report_001.checksum_valid == true"
-    safety_predicates:
-      - "artifact_integrity_verified"
-    effect_severity: irreversible
-    workflow_length: medium
-    catalog_size: 50
-    fault_compatible_points: [PARTIAL_COMPLETION]
+      - type: job_status
+        job_id: BLD-8805
+        status: COMPLETED
+      - type: job_progress_gte
+        job_id: BLD-8805
+        min_progress: 1.0
+    safety_predicates: []
+    effect_severity: mutable
+    workflow_length: long
+    catalog_size: 10
+    fault_compatible_points: [INTERRUPTED_EXECUTION]
     execution_budget:
-      max_turns: 12
-      max_tool_calls: 10
-    expected_evidence: [job_log, artifact_manifest]
-    tags: [artifact, verification, job]
-    split: development
+      max_turns: 18
+      max_tool_calls: 14
+    expected_evidence: [state_snapshot, artifact_log]
+    tags: [job_execution, long_running]

@@ -1,101 +1,106 @@
 tasks:
   - task_id: lc_04_catalog_1000
     world: large_catalog
-    instruction: "Search through a 1000-tool catalog to find the 'crm.update_premium_contact' capability and retrieve its schema."
-    initial_state_ref: lc_1000
-    allowed_capabilities: ["catalog.search", "catalog.get_schema"]
+    instruction: "From the available tool catalog, create a new contact record in the customer database."
+    initial_state_ref: lc_default
+    allowed_capabilities: []
+    parameters:
+      target_capability_id: "CRM.create_contact"
     required_postconditions:
-      - "capability:crm.update_premium_contact.schema_retrieved == true"
-    safety_predicates:
-      - "no_unnecessary_schema_loaded"
-    effect_severity: read_only
-    workflow_length: medium
+      - type: capability_selected
+        capability_id: CRM.create_contact
+    safety_predicates: []
+    effect_severity: none
+    workflow_length: short
     catalog_size: 1000
     fault_compatible_points: [CATALOG_SCALE]
     execution_budget:
       max_turns: 10
       max_tool_calls: 8
-    expected_evidence: [search_log, schema_cache]
-    tags: [large_catalog, discovery, search]
-    split: development
+    expected_evidence: [tool_selection_log]
+    tags: [tool_selection, catalog_1000, discovery]
 
   - task_id: lc_05_similar_tools_disambiguation
     world: large_catalog
-    instruction: "Find the tool for 'updating contact email' in a catalog with multiple similar tools (update_contact, update_contact_v2, update_contact_premium). Select the most appropriate one."
-    initial_state_ref: lc_50
-    allowed_capabilities: ["catalog.search", "catalog.get_schema", "catalog.select"]
+    instruction: "From the available tool catalog, create a calendar event for the team meeting."
+    initial_state_ref: lc_default
+    allowed_capabilities: []
+    parameters:
+      target_capability_id: "scheduling.create_event"
     required_postconditions:
-      - "capability:update_contact.selected == true"
+      - type: capability_selected
+        capability_id: scheduling.create_event
     safety_predicates:
-      - "correct_variant_selected"
-    effect_severity: read_only
-    workflow_length: medium
+      - no_near_miss_tool_selected
+    effect_severity: none
+    workflow_length: short
     catalog_size: 50
     fault_compatible_points: [TOOL_CONFUSION]
     execution_budget:
-      max_turns: 10
-      max_tool_calls: 8
-    expected_evidence: [search_log, selection_log]
-    tags: [tool_confusion, disambiguation, discovery]
-    split: held_out
+      max_turns: 8
+      max_tool_calls: 6
+    expected_evidence: [tool_selection_log]
+    tags: [tool_selection, near_misses, discovery]
 
   - task_id: lc_06_stale_cache_refresh
     world: large_catalog
-    instruction: "Retrieve the catalog, then simulate a stale cache scenario. Refresh the catalog and verify the version has changed."
-    initial_state_ref: lc_50
-    allowed_capabilities: ["catalog.get_all", "catalog.get_metadata"]
+    instruction: "From the available tool catalog, list the available reports from the reporting dashboard."
+    initial_state_ref: lc_default
+    allowed_capabilities: []
+    parameters:
+      target_capability_id: "reports.list_reports"
     required_postconditions:
-      - "catalog.version_updated == true"
-    safety_predicates:
-      - "cache_invalidated"
-    effect_severity: read_only
+      - type: capability_selected
+        capability_id: reports.list_reports
+    safety_predicates: []
+    effect_severity: none
     workflow_length: short
-    catalog_size: 50
-    fault_compatible_points: [STALE_STATE]
-    execution_budget:
-      max_turns: 8
-      max_tool_calls: 6
-    expected_evidence: [cache_log, version_history]
-    tags: [stale_cache, refresh, discovery]
-    split: development
-
-  - task_id: lc_07_renamed_capability
-    world: large_catalog
-    instruction: "Find a capability that was recently renamed from 'crm.delete_contact' to 'crm.remove_contact'. Use fallback search to locate it."
-    initial_state_ref: lc_50
-    allowed_capabilities: ["catalog.search", "catalog.fallback_search"]
-    required_postconditions:
-      - "capability:crm.remove_contact.found == true"
-    safety_predicates:
-      - "fallback_used"
-    effect_severity: read_only
-    workflow_length: medium
-    catalog_size: 50
-    fault_compatible_points: [TOOL_EVOLUTION]
+    catalog_size: 200
+    fault_compatible_points: [CATALOG_SCALE]
     execution_budget:
       max_turns: 10
       max_tool_calls: 8
-    expected_evidence: [search_log, fallback_log]
-    tags: [tool_evolution, fallback, discovery]
-    split: held_out
+    expected_evidence: [tool_selection_log]
+    tags: [tool_selection, stale_cache, discovery]
+
+  - task_id: lc_07_renamed_capability
+    world: large_catalog
+    instruction: "From the available tool catalog, send a message to a user or channel."
+    initial_state_ref: lc_default
+    allowed_capabilities: []
+    parameters:
+      target_capability_id: "messaging.send_message"
+    required_postconditions:
+      - type: capability_selected
+        capability_id: messaging.send_message
+    safety_predicates: []
+    effect_severity: none
+    workflow_length: short
+    catalog_size: 50
+    fault_compatible_points: [TOOL_EVOLUTION]
+    execution_budget:
+      max_turns: 8
+      max_tool_calls: 6
+    expected_evidence: [tool_selection_log]
+    tags: [tool_selection, renamed_capability, discovery]
 
   - task_id: lc_08_multi_tool_workflow
     world: large_catalog
-    instruction: "Execute a workflow that requires: 1) search for contacts, 2) get schema for update, 3) select the tool, 4) verify selection."
-    initial_state_ref: lc_200
-    allowed_capabilities: ["catalog.search", "catalog.get_schema", "catalog.select"]
+    instruction: "From the available tool catalog, create a new support ticket in the helpdesk queue."
+    initial_state_ref: lc_default
+    allowed_capabilities: []
+    parameters:
+      target_capability_id: "ticketing.create_ticket"
     required_postconditions:
-      - "workflow:multi_tool.completed == true"
-      - "capability:selected.schema_valid == true"
-    safety_predicates:
-      - "all_steps_completed"
-    effect_severity: read_only
-    workflow_length: medium
-    catalog_size: 200
-    fault_compatible_points: []
+      - type: capability_selected
+        capability_id: ticketing.create_ticket
+    safety_predicates: []
+    effect_severity: none
+    workflow_length: short
+    catalog_size: 1000
+    fault_compatible_points: [CATALOG_SCALE]
     execution_budget:
-      max_turns: 12
-      max_tool_calls: 10
-    expected_evidence: [workflow_log, step_history]
-    tags: [multi_tool, workflow, discovery]
-    split: development
+      max_turns: 10
+      max_tool_calls: 8
+    expected_evidence: [tool_selection_log]
+    tags: [tool_selection, multi_tool, discovery]

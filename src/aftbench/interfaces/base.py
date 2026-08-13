@@ -23,3 +23,15 @@ class Interface(abc.ABC):
     def cancel(self, invocation_id: str) -> dict: raise NotImplementedError
     def reconcile(self, invocation_id: str) -> dict: raise NotImplementedError
     def get_evidence(self, invocation_id: str) -> dict: raise NotImplementedError
+
+    def supports(self, capability: str) -> bool:
+        """Whether the interface truly implements an optional capability.
+
+        Base-class stubs raise NotImplementedError; only overridden methods
+        count as supported.
+        """
+        method = getattr(type(self), capability, None)
+        if method is None:
+            return False
+        base_method = getattr(Interface, capability, None)
+        return method is not base_method

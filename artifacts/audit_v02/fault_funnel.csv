@@ -1,0 +1,8 @@
+experiment,fault_configured,request_accepted,backend_started,effect_committed,response_generated,response_dropped,recovery_eligible,recovery_attempted,recovery_succeeded
+discovery,0,96,120,72,120,0,0,0,0
+resume,120,120,120,24,120,0,120,96,48
+durable_state,120,120,120,24,120,0,120,96,48
+effect_contract/postcommit_loss,168,168,258,228,258,162,168,72,72
+effect_contract/stale_permission,240,240,348,108,348,0,0,0,0
+verification,168,168,258,228,258,162,168,72,72
+sqlite/production_like,96,144,186,162,186,48,48,12,12

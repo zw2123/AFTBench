@@ -1,0 +1,8 @@
+metric,n_pairs,mean_delta,median_delta,stdev_delta,n_a_better,n_b_better,n_tied
+delta_state_correct,0,0.0,0.0,0.0,0,0,0
+delta_postcondition,0,0.0,0.0,0.0,0,0,0
+delta_safety,0,0.0,0.0,0.0,0,0,0
+delta_tool_calls,0,0.0,0.0,0.0,0,0,0
+delta_turns,0,0.0,0.0,0.0,0,0,0
+delta_wall_clock_ms,0,0.0,0.0,0.0,0,0,0
+delta_context_tokens,0,0.0,0.0,0.0,0,0,0

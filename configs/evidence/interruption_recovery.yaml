@@ -1,6 +1,6 @@
 profile: interruption_recovery
 seed: 42
-output_dir: artifacts/evidence_runs/interruption_recovery
+output_dir: artifacts/evidence_v02/resume
 worlds:
   - long_running_jobs
 

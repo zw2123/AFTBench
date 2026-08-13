@@ -2,7 +2,7 @@
 from __future__ import annotations
 from typing import Any
 from .base import Interface
-from .i0_shared import CAPS, cap_to_effect, CAPS_BY_ID
+from .i0_shared import CAPS, CAPS_BY_ID, cap_to_effect, cap_to_effect_world, strip_version_metadata
 
 # Map short names to full capability IDs for backward compatibility
 SHORT_NAME_MAP = {
@@ -30,9 +30,13 @@ class I0LegacyInterface(Interface):
     def invoke(self, capability_id: str, params: dict, world: Any, context: dict | None = None) -> dict:
         # Support both short names and full capability IDs
         full_id = SHORT_NAME_MAP.get(capability_id, capability_id)
-        effect = cap_to_effect(full_id, params)
+        # Legacy clients have no idempotency contract: keys are never sent.
+        params = {k: v for k, v in params.items() if k != "idempotency_key"}
+        effect = cap_to_effect_world(full_id, params, world)
         if "error" in effect: return {"status":"error","success":False,"error":effect["error"]}
         try: result = world.apply_effect(effect)
         except Exception as exc: return {"status":"error","success":False,"error":str(exc)}
         if not result.get("success",True): return {"status":"error","success":False,"error":result.get("error","Backend error")}
-        return {"status":"success","success":True,**{k:v for k,v in result.items() if k!="success"}}
+        # Legacy responses expose plain data: no version metadata, no error codes.
+        payload = strip_version_metadata({k:v for k,v in result.items() if k != "success"})
+        return {"status":"success","success":True,**payload}

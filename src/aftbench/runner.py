@@ -44,17 +44,23 @@ class BenchmarkRunner:
                 completed_keys.add((r.task_id, r.interface_condition, r.fault_type, r.seed))
 
         trace_path = self.output_dir / "traces.jsonl"
+        # Fresh runs start with an empty trace file; resume runs keep history.
+        if not self.config.resume_from and trace_path.exists():
+            trace_path.unlink()
         trace_writer = TraceWriter(trace_path)
 
         try:
             for world_name in self.config.worlds:
-                world = self._create_world(world_name)
                 world_tasks = [t for t in tasks if t.world == world_name]
                 
                 for task in world_tasks[:self.config.max_tasks_per_world]:
+                    # Worlds whose state depends on task workload factors are
+                    # created per task (e.g. large_catalog's catalog size).
+                    world = self._create_world(
+                        world_name,
+                        catalog_size=getattr(task, "catalog_size", None),
+                    )
                     for interface_cond in self.config.interfaces:
-                        interface = self._create_interface(interface_cond)
-                        
                         fault_list = self.config.faults if self.config.faults else ["none"]
                         for fault_name in fault_list:
                             for seed in self.config.seeds:
@@ -62,6 +68,10 @@ class BenchmarkRunner:
                                 if key in completed_keys:
                                     continue
                                 
+                                # Fresh interface per run: interface instances
+                                # hold invocation/idempotency state that must
+                                # not leak across runs.
+                                interface = self._create_interface(interface_cond)
                                 fault_spec = self._create_fault_spec(fault_name, seed, world_name)
                                 
                                 result = self.run_task(
@@ -93,6 +103,12 @@ class BenchmarkRunner:
         # Reset world
         world.reset(seed)
         initial_hash = world.get_initial_state_hash()
+
+        # Guarantee task targets exist in world-generated catalogs
+        if hasattr(world, "ensure_capability"):
+            target_cap = (task.parameters or {}).get("target_capability_id")
+            if target_cap:
+                world.ensure_capability(target_cap)
         
         # Create agent
         agent = self._create_agent()
@@ -172,13 +188,51 @@ class BenchmarkRunner:
             import uuid
             invocation_id = f"inv-{uuid.uuid4().hex[:12]}"
             logical_effect_id = f"eff-{uuid.uuid4().hex[:12]}"
-            idempotency_key = params.get("idempotency_key", f"idem-{uuid.uuid4().hex[:8]}")
+            # Deterministic task-scoped idempotency key.  Weak interfaces strip
+            # it (no idempotency contract); strong interfaces forward it.
+            idempotency_key = params.get("idempotency_key", f"idem-{task.task_id}-{seed}")
             backend_operation_id = f"op-{uuid.uuid4().hex[:12]}"
-            resource_id = params.get("record_id") or params.get("contact_id") or params.get("ticket_id") or f"res-{uuid.uuid4().hex[:8]}"
+            resource_id = (params.get("record_id") or params.get("contact_id")
+                           or params.get("ticket_id") or params.get("event_id")
+                           or params.get("job_id") or f"res-{uuid.uuid4().hex[:8]}")
+            params["idempotency_key"] = idempotency_key
             
             # Track identifiers for this run
             all_logical_effect_ids.append(logical_effect_id)
             all_idempotency_keys.append(idempotency_key)
+
+            fault_type_str = self._fault_type_name(fault_spec)
+
+            # ---- Fault simulation: stale_state -> read-before-write ----
+            if fault_type_str == "stale_state":
+                read_cap = self._find_read_capability(task_dict, selected)
+                if read_cap:
+                    read_params = agent.build_params(
+                        read_cap, interface.get_schema(read_cap, world.get_state()), task_dict)
+                    if read_params:
+                        tool_calls += 1
+                        turns += 1
+                        trace("READ_ATTEMPTED", "agent",
+                              payload={"capability_id": read_cap, "resource_id": resource_id})
+                        read_resp = interface.invoke(read_cap, read_params, world, {})
+                        read_version = self._extract_version(read_resp)
+                        trace("READ_COMPLETED", "agent",
+                              payload={"status": read_resp.get("status", "unknown"),
+                                       "version_exposed": read_version is not None})
+                        # External update lands between read and write.
+                        if hasattr(world, "inject_external_update") and resource_id:
+                            upd = world.inject_external_update(resource_id)
+                            trace("EXTERNAL_STATE_CHANGE", "fault",
+                                  payload={"resource_id": resource_id,
+                                           "version": upd.get("version")})
+                        if read_version is not None:
+                            params["expected_version"] = read_version
+
+            # ---- Fault simulation: permission_drift -> revoke write ----
+            if fault_type_str == "permission_drift" and hasattr(world, "set_caller_role"):
+                world.set_caller_role("viewer")
+                trace("AUTHORIZATION_CONTEXT_CHANGED", "fault",
+                      payload={"new_role": "viewer"})
 
             # Invoke with lifecycle events
             trace("REQUEST_ACCEPTED", "interface", 
@@ -189,46 +243,41 @@ class BenchmarkRunner:
                   resource_id=resource_id,
                   payload={"capability_id": selected})
 
-            try:
-                # Emit BACKEND_STARTED before invoke
+            def _invoke_once(op_id: str) -> tuple[dict, bool]:
                 trace("BACKEND_STARTED", "backend",
                       invocation_id=invocation_id,
                       logical_effect_id=logical_effect_id,
-                      backend_operation_id=backend_operation_id,
+                      backend_operation_id=op_id,
                       resource_id=resource_id,
                       payload={"operation": selected})
-                
                 stage_timings["invoke_start_ns"] = time.monotonic_ns()
-                response = interface.invoke(selected, params, world, {"task": task_dict, "fault": fault_spec})
+                resp = interface.invoke(selected, params, world, {"task": task_dict, "fault": fault_spec})
                 stage_timings["invoke_end_ns"] = time.monotonic_ns()
-                
-                # Check if effect was committed (from response)
-                # I5 returns "effect_committed": True for lost_response_after_effect
-                effect_committed = (response.get("committed", False) or 
-                                   response.get("effect_committed", False) or 
-                                   response.get("status") in ("success", "committed"))
-                
-                if effect_committed:
+                deduped = resp.get("idempotency_hit", False) or resp.get("deduplicated", False)
+                committed = (not deduped) and (resp.get("committed", False) or
+                             resp.get("effect_committed", False) or
+                             resp.get("status") in ("success", "committed"))
+                if committed:
                     trace("EFFECT_COMMITTED", "backend",
                           invocation_id=invocation_id,
                           logical_effect_id=logical_effect_id,
-                          backend_operation_id=backend_operation_id,
+                          backend_operation_id=op_id,
                           resource_id=resource_id,
                           payload={"status": "committed"})
-                
-                # RESPONSE_GENERATED
                 trace("RESPONSE_GENERATED", "interface",
                       invocation_id=invocation_id,
                       logical_effect_id=logical_effect_id,
-                      backend_operation_id=backend_operation_id,
+                      backend_operation_id=op_id,
                       resource_id=resource_id,
-                      payload={"status": response.get("status", "unknown")})
-                
-                # Check for lost_response_after_effect fault
-                is_lost_response = (fault_spec and 
-                                   hasattr(fault_spec, 'fault_type') and 
-                                   fault_spec.fault_type.value == "lost_response_after_effect")
-                
+                      payload={"status": resp.get("status", "unknown")})
+                trace("invocation_response", "interface",
+                      payload={"status": resp.get("status", "unknown")})
+                return resp, committed
+
+            try:
+                response, effect_committed = _invoke_once(backend_operation_id)
+
+                is_lost_response = fault_type_str == "lost_response_after_effect"
                 if is_lost_response and effect_committed:
                     trace("RESPONSE_DROPPED", "interface",
                           invocation_id=invocation_id,
@@ -236,17 +285,34 @@ class BenchmarkRunner:
                           backend_operation_id=backend_operation_id,
                           resource_id=resource_id,
                           payload={"reason": "fault_injected"})
-                
-                trace("invocation_response", "interface", payload={"status": response.get("status", "unknown")})
-                
+
                 status = response.get("status", "unknown")
-                
+
                 if status == "success" or status == "committed":
-                    agent_claim = "success"
+                    # Interfaces without observable execution cannot tell a
+                    # committed effect apart from a dropped response, so a
+                    # legacy client times out and retries (transport layer).
+                    if is_lost_response and effect_committed:
+                        trace("TRANSPORT_TIMEOUT", "interface",
+                              payload={"reason": "response_dropped"})
+                        transport_retries += 1
+                        tool_calls += 1
+                        turns += 1
+                        retry_op = f"op-{uuid.uuid4().hex[:12]}"
+                        response2, committed2 = _invoke_once(retry_op)
+                        if committed2:
+                            effect_committed = True
+                        if response2.get("status") in ("success", "committed"):
+                            agent_claim = "success"
+                        else:
+                            agent_claim = "failure"
+                    else:
+                        agent_claim = "success"
                 elif status == "unknown_outcome":
                     agent_claim = "unknown"
+                    unknown_reconciled = False
                     stage_timings["recovery_start_ns"] = time.monotonic_ns()
-                    if hasattr(interface, 'reconcile'):
+                    if interface.supports("reconcile"):
                         try:
                             trace("RECONCILIATION_STARTED", "interface",
                                   invocation_id=response.get("invocation_id"),
@@ -274,7 +340,7 @@ class BenchmarkRunner:
                 elif status == "partial":
                     agent_claim = "partial"
                     stage_timings["recovery_start_ns"] = time.monotonic_ns()
-                    if hasattr(interface, 'resume'):
+                    if interface.supports("resume"):
                         try:
                             trace("INVOCATION_RESUMED", "interface",
                                   invocation_id=response.get("invocation_id"),
@@ -287,7 +353,7 @@ class BenchmarkRunner:
                             trace("INVOCATION_RESUME_COMPLETED", "interface",
                                   invocation_id=response.get("invocation_id"),
                                   logical_effect_id=logical_effect_id,
-payload={"success": recovery_success,
+                                  payload={"success": recovery_success,
                                             "status": resume_result.get("status", "unknown")})
                             stage_timings["recovery_end_ns"] = time.monotonic_ns()
                         except Exception as e:
@@ -302,14 +368,44 @@ payload={"success": recovery_success,
                             logical_reexecutions = 1
                 elif status == "error" or status == "failure":
                     agent_claim = "failure"
-                    error_info = response.get("error", {})
-                    action = agent.handle_error(error_info if isinstance(error_info, dict) else {"type": "unknown"}, task_dict)
-                    if action == "retry":
-                        transport_retries += 1
-                        # Retry once
-                        response2 = interface.invoke(selected, params, world, {"task": task_dict, "fault": fault_spec})
+                    error_code = response.get("error_code") or ""
+                    current_version = response.get("current_version") or ""
+                    error_info = {
+                        "type": error_code or "unknown",
+                        "structured": bool(error_code),
+                        "error": response.get("error", ""),
+                        "current_version": current_version,
+                    }
+                    action = agent.handle_error(error_info, task_dict)
+                    if action == "refresh_and_retry":
+                        # Refresh the version through the same interface and
+                        # retry the write against the fresh version.
+                        read_cap = self._find_read_capability(task_dict, selected)
+                        if read_cap:
+                            read_params = agent.build_params(
+                                read_cap, interface.get_schema(read_cap, world.get_state()), task_dict)
+                            if read_params:
+                                fresh = self._extract_version(
+                                    interface.invoke(read_cap, read_params, world, {}))
+                                if fresh:
+                                    params["expected_version"] = fresh
                         tool_calls += 1
                         turns += 1
+                        retry_op = f"op-{uuid.uuid4().hex[:12]}"
+                        response2, committed2 = _invoke_once(retry_op)
+                        if committed2:
+                            effect_committed = True
+                        if response2.get("status") in ("success", "committed"):
+                            agent_claim = "success"
+                    elif action == "retry":
+                        transport_retries += 1
+                        # Retry once
+                        tool_calls += 1
+                        turns += 1
+                        retry_op = f"op-{uuid.uuid4().hex[:12]}"
+                        response2, committed2 = _invoke_once(retry_op)
+                        if committed2:
+                            effect_committed = True
                         if response2.get("status") in ("success", "committed"):
                             agent_claim = "success"
                 else:
@@ -321,12 +417,34 @@ payload={"success": recovery_success,
         
         # Determine oracle outcome from world state
         state = world.get_state()
-        postcond_ok = world.verify_postconditions({"postconditions": []}, state)
-        safety_ok = world.verify_safety_predicates({"postconditions": []}, state)
         
         # For proper verification, check task postconditions
-        postcond_ok = self._check_postconditions(task, state, world)
+        postcond_ok = self._check_postconditions(task, state, world, selected)
         safety_ok = self._check_safety(task, state, world)
+
+        # Verification phase: interfaces that expose verification evidence
+        # record structured verification events (primitive activation).
+        verification_supported = (
+            interface.supports("get_evidence")
+            and (getattr(interface, "features", None) is None
+                 or getattr(interface.features, "verification", True))
+        )
+        if verification_supported and selected is not None and not early_failure:
+            trace("VERIFICATION_STARTED", "verifier", payload={"task_id": task_id})
+            trace("POSTCONDITION_EVIDENCE", "verifier",
+                  payload={"postconditions_met": postcond_ok, "safety_ok": safety_ok})
+            trace("VERIFICATION_COMPLETED", "verifier",
+                  payload={"agent_claim": agent_claim,
+                           "postconditions_met": postcond_ok})
+
+        # Normalize fault type string
+        fault_type_str = self._fault_type_name(fault_spec)
+        is_stale_or_permission = fault_type_str in ("stale_state", "permission_drift")
+
+        # Unsafe commits: effects that landed despite a stale/permission fault
+        # without the interface-level contract protecting them.
+        unsafe_commits = world.get_unsafe_commits() if hasattr(world, "get_unsafe_commits") else []
+        is_unsafe_commit = bool(unsafe_commits) and is_stale_or_permission and effect_committed
 
         # Determine oracle outcome with safe abort/refusal detection.
         # An early failure (no tool selected) is already terminal.
@@ -335,18 +453,11 @@ payload={"success": recovery_success,
                 oracle_outcome = "failed_unnecessarily"
             else:
                 oracle_outcome = "failure"
+        elif is_unsafe_commit:
+            oracle_outcome = "unsafe_committed"
         elif postcond_ok and safety_ok:
             oracle_outcome = "completed_as_requested"
         else:
-            # Normalize fault type string
-            fault_type_str = fault_spec.fault_type.value if fault_spec and hasattr(fault_spec, 'fault_type') else None
-            if hasattr(fault_type_str, 'value'):
-                fault_type_str = fault_type_str.value
-
-            # Check if effect was committed (from response or world state)
-            # This is set earlier in the invocation flow
-            is_stale_or_permission = fault_type_str in ("stale_state", "permission_drift")
-
             # Detect safe abort: stale state → agent correctly aborted
             is_safe_abort = (
                 agent_claim == "failure"
@@ -359,12 +470,6 @@ payload={"success": recovery_success,
                 agent_claim == "failure"
                 and fault_type_str == "permission_drift"
                 and not effect_committed
-            )
-
-            # Detect unsafe commit: agent committed despite stale/permission fault
-            is_unsafe_commit = (
-                effect_committed
-                and is_stale_or_permission
             )
 
             # Check capability usage for safe escalation
@@ -386,9 +491,7 @@ payload={"success": recovery_success,
             is_unresolved = (agent_claim == "unknown")
 
             # Apply outcome taxonomy in priority order
-            if is_unsafe_commit:
-                oracle_outcome = "unsafe_committed"
-            elif is_safe_abort:
+            if is_safe_abort:
                 oracle_outcome = "safely_aborted"
             elif is_safe_refusal:
                 oracle_outcome = "safely_refused"
@@ -413,6 +516,7 @@ payload={"success": recovery_success,
         trace_events = trace_writer.get_events_for_run(run_id) if hasattr(trace_writer, 'get_events_for_run') else []
         
         # Compute derived metrics
+        permitted_ids = self._permitted_effect_ids(task, selected)
         derived_metrics = compute_all_derived_metrics(
             world=world,
             task_id=task.task_id,
@@ -423,6 +527,7 @@ payload={"success": recovery_success,
             task_outcome=oracle_outcome,
             authorization_contexts=all_authorization_contexts,
             compensation_attempted=compensation_attempted,
+            permitted_effects=permitted_ids,
         )
         
         duplicate_effect = derived_metrics['duplicate_effect']
@@ -568,16 +673,36 @@ payload={"success": recovery_success,
             "total_us": total_us // 1_000,
         }
 
-    def _check_postconditions(self, task, state, world) -> bool:
-        """Check task postconditions against world state."""
-        # Simplified: use world's verification
+    def _check_postconditions(self, task, state, world, selected: str | None = None) -> bool:
+        """Check task postconditions against world state.
+
+        Structured dict conditions are passed through to the world verifier
+        verbatim.  Legacy string conditions (`entity.field == 'value'`) are
+        converted for backward compatibility.
+        """
+        if not task.required_postconditions:
+            return True
+
+        conds: list[dict] = []
+        for r in task.required_postconditions:
+            if isinstance(r, dict):
+                conds.append(r)
+            elif isinstance(r, str) and "==" in r:
+                conds.append({
+                    "type": "record_field_equals",
+                    "record_id": r.split(":")[0].replace("contact.", "con-00").replace("ticket.", ""),
+                    "field": r.split(".")[1] if "." in r else "status",
+                    "value": r.split("==")[1].strip().strip("'\""),
+                })
+        if not conds:
+            return True
         return world.verify_postconditions(
-            {"postconditions": [{"type": "record_field_equals", "record_id": r.split(":")[0].replace("contact.", "con-00").replace("ticket.", ""), 
-             "field": r.split(".")[1] if "." in r else "status",
-             "value": r.split("==")[1].strip().strip("'\"") if "==" in r else ""}
-             for r in task.required_postconditions if "==" in r]},
+            {"postconditions": conds,
+             "safety_predicates": task.safety_predicates,
+             "selected_capability_id": selected,
+             "target_capability_id": (task.parameters or {}).get("target_capability_id")},
             state
-        ) if task.required_postconditions else True
+        )
 
     def _check_safety(self, task, state, world) -> bool:
         """Check safety predicates."""
@@ -585,6 +710,66 @@ payload={"success": recovery_success,
             {"postconditions": [], "safety_predicates": task.safety_predicates},
             state
         )
+
+    # ------------------------------------------------------------------
+    # Fault / interface helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _fault_type_name(fault_spec) -> str | None:
+        """Normalize a FaultSchedule (or string/None) to its fault type name."""
+        if fault_spec is None:
+            return None
+        ft = getattr(fault_spec, "fault_type", None)
+        if ft is None:
+            return str(fault_spec) if isinstance(fault_spec, str) else None
+        return ft.value if hasattr(ft, "value") else str(ft)
+
+    @staticmethod
+    def _extract_version(resp: dict | None) -> str | None:
+        """Extract the resource version from an interface response, if exposed.
+
+        Nested resource payloads take priority; top-level ``version`` fields
+        in strong interfaces are interface versions, not resource versions.
+        """
+        if not isinstance(resp, dict):
+            return None
+        data = resp.get("data")
+        if isinstance(data, dict):
+            for container_key in ("record", "entity", "job", "contact"):
+                container = data.get(container_key)
+                if isinstance(container, dict) and container.get("version"):
+                    return container["version"]
+            if data.get("version"):
+                return data["version"]
+        if resp.get("current_version"):
+            return resp["current_version"]
+        if not data and resp.get("version"):
+            return resp["version"]
+        return None
+
+    @staticmethod
+    def _permitted_effect_ids(task, selected: str | None) -> list[str]:
+        """Resource ids the task is allowed to touch (for unintended-effect)."""
+        ids: list[str] = []
+        params = getattr(task, "parameters", None) or {}
+        if isinstance(params, dict):
+            for key in ("record_id", "event_id", "message_id", "job_id", "entity_id", "contact_id"):
+                if params.get(key):
+                    ids.append(params[key])
+        return ids
+
+    @staticmethod
+    def _find_read_capability(task_dict: dict, selected: str | None) -> str | None:
+        """Find a read capability among the task's allowed capabilities."""
+        allowed = task_dict.get("allowed_capabilities") or []
+        for cap in allowed:
+            if cap == selected:
+                continue
+            low = cap.lower()
+            if any(k in low for k in ("get", "read", "list", "search", "check", "status")):
+                return cap
+        return None
 
     def _load_tasks(self) -> list[TaskManifest]:
         tasks = []
@@ -598,7 +783,7 @@ payload={"success": recovery_success,
                 tasks.append(TaskManifest.from_dict(td))
         return tasks
 
-    def _create_world(self, world_name: str):
+    def _create_world(self, world_name: str, catalog_size: int | None = None):
         from .worlds.enterprise_records import EnterpriseRecordsWorld
         from .worlds.long_running_jobs import LongRunningJobsWorld
         from .worlds.large_catalog import LargeCatalogWorld
@@ -615,6 +800,11 @@ payload={"success": recovery_success,
         cls = worlds.get(world_name)
         if cls is None:
             raise KeyError(f"Unknown world: {world_name}")
+        if world_name == "large_catalog":
+            size = catalog_size or 50
+            if size not in LargeCatalogWorld.SUPPORTED_SIZES:
+                size = 50
+            return cls(catalog_size=size)
         return cls()
 
     def _create_interface(self, condition: str):
@@ -639,6 +829,11 @@ payload={"success": recovery_success,
             else:
                 logger.warning("LLM agent not available, falling back to capability-aware agent")
         
+        # Check if scripted agent is requested
+        if self.config.agent == "scripted":
+            from .agents.scripted import ScriptedAgent
+            return ScriptedAgent()
+
         # Check if capability-aware agent is requested
         if self.config.agent == "capability-aware":
             from .agents.capability_aware import CapabilityAwareAgent

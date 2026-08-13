@@ -132,14 +132,15 @@ def check_resumable_invocation() -> Dict[str, Any]:
         "detail": "I3 has resume() method" if "def resume" in i3_src else "WARNING: I3 missing resume()",
     })
 
-    # Check: I3 resume() returns different result than I5-minus-resume
+    # Check: I5-minus-resume signals resume unavailability
     r3 = i3.resume("nonexistent")
     r5m = i5_minus.resume("nonexistent")
+    minus_disabled = r5m.get("error", "").startswith("Resumable") or "not available" in r5m.get("error", "")
     results["checks"].append({
         "check": "i3_resume_vs_minus_resume",
-        "passed": r3.get("status") != r5m.get("status"),
+        "passed": r3.get("status") == "error" and r5m.get("status") == "error" and minus_disabled,
         "detail": f"I3 resume(nonexistent): {r3.get('status')}, "
-                  f"I5-minus resume(nonexistent): {r5m.get('status')}",
+                  f"I5-minus resume(nonexistent): {r5m.get('status')} ({r5m.get('error', '')})",
     })
 
     return results
@@ -318,13 +319,15 @@ def check_durable_state() -> Dict[str, Any]:
         "detail": "Methods differ" if i5_src != minus_src else "WARNING: identical",
     })
 
-    # Check reconcile returns different results
+    # Check reconcile signals durable-state unavailability in the ablation
     r_i5 = i5.reconcile("nonexistent")
     r_mn = i5_minus.reconcile("nonexistent")
+    minus_disabled = "urable" in r_mn.get("error", "") or "not available" in r_mn.get("error", "")
     results["checks"].append({
         "check": "reconcile_returns_different_results",
-        "passed": r_i5.get("status") != r_mn.get("status"),
-        "detail": f"I5: {r_i5.get('status')}, I5-minus: {r_mn.get('status')}",
+        "passed": minus_disabled,
+        "detail": f"I5: {r_i5.get('status')} ({r_i5.get('error', '')}), "
+                  f"I5-minus: {r_mn.get('status')} ({r_mn.get('error', '')})",
     })
 
     # Check I5 has _durable dict

@@ -1,6 +1,6 @@
 profile: discovery_frontier
 seed: 42
-output_dir: artifacts/evidence_runs/discovery_frontier
+output_dir: artifacts/evidence_v02/discovery
 worlds:
   - large_catalog
 

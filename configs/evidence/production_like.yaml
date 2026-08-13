@@ -1,6 +1,6 @@
 profile: production_like
 seed: 42
-output_dir: artifacts/evidence_runs/production_like
+output_dir: artifacts/evidence_v02/sqlite/production_like
 worlds:
   - sqlite_crm
 

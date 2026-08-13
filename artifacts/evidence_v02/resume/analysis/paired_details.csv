@@ -1,0 +1,1 @@
+task_id,world,fault_type,seed,agent_id,interface_a,interface_b,delta_state_correct,delta_postcondition,delta_safety,delta_tool_calls,delta_turns,delta_wall_clock_ms,delta_context_tokens

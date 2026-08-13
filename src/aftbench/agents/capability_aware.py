@@ -163,11 +163,19 @@ class CapabilityAwareAgent(Agent):
             cap_desc = cap.get("description", "").lower()
             cap_text = f"{cap_id} {cap_name} {cap_desc}"
 
-            score = 0
+            score = 0.0
             for action_keywords in _KEYWORD_MAP.values():
                 for kw in action_keywords:
                     if kw in combined and kw in cap_text:
-                        score += 1
+                        score += 1.0
+            # Tie-breaker: shared non-action words signal semantic match.
+            task_words = set(w for w in combined.split() if len(w) > 2)
+            cap_words = set(cap_text.split())
+            all_action_kws = {kw for kws in _KEYWORD_MAP.values() for kw in kws}
+            score += 0.01 * len(task_words & cap_words - all_action_kws)
+            # Prefer canonical (non-generated) capabilities on exact ties.
+            if not any(ch.isdigit() for ch in cap_id):
+                score += 0.0001
             if score > best_score:
                 best_score = score
                 best_cap = cap_id
@@ -192,6 +200,10 @@ class CapabilityAwareAgent(Agent):
         task: dict[str, Any],
     ) -> dict[str, Any]:
         params: dict[str, Any] = {}
+        # Schemas may either expose "properties" directly or wrap it inside
+        # "input_schema" (I1-family interfaces).
+        if isinstance(schema, dict) and isinstance(schema.get("input_schema"), dict):
+            schema = schema["input_schema"]
         properties = schema.get("properties", {})
 
         for param_name, param_schema in properties.items():
@@ -368,6 +380,17 @@ class CapabilityAwareAgent(Agent):
             if self._retry_count < _MAX_RETRIES:
                 self._retry_count += 1
                 return "retry"
+            return "abort"
+
+        if error_type == "VERSION_CONFLICT":
+            # Only interfaces that expose the fresh version can refresh.
+            if error.get("current_version"):
+                self._record_capability_usage("version_refresh", {
+                    "error_type": error_type,
+                    "current_version": error.get("current_version"),
+                })
+                self._retry_count = 0
+                return "refresh_and_retry"
             return "abort"
 
         if error_type == "PARTIAL_FAILURE":

@@ -491,22 +491,36 @@ def generate_consistency_report(ledger: List[Dict]) -> str:
 
 def main():
     """Build ledger for all experiments."""
-    evidence_dir = Path("artifacts/evidence_runs")
-    output_dir = Path("artifacts/audit")
+    import argparse
+    parser = argparse.ArgumentParser(description="Build AFTBench experiment ledger")
+    parser.add_argument("--evidence-dir", default="artifacts/evidence_runs",
+                        help="Root directory of experiment outputs")
+    parser.add_argument("--experiments", default=None,
+                        help="Comma-separated experiment subdirectory names "
+                             "(default: the six canonical profiles)")
+    parser.add_argument("--output-dir", default="artifacts/audit",
+                        help="Where to write ledger/funnel/report files")
+    args = parser.parse_args()
+
+    evidence_dir = Path(args.evidence_dir)
+    output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if not evidence_dir.exists():
         print(f"Error: {evidence_dir} not found")
         return
 
-    experiments = [
-        "primitive_ablations",
-        "discovery_frontier",
-        "postcommit_loss",
-        "interruption_recovery",
-        "stale_permission",
-        "production_like",
-    ]
+    if args.experiments:
+        experiments = [e.strip() for e in args.experiments.split(",") if e.strip()]
+    else:
+        experiments = [
+            "primitive_ablations",
+            "discovery_frontier",
+            "postcommit_loss",
+            "interruption_recovery",
+            "stale_permission",
+            "production_like",
+        ]
 
     ledger = []
     for exp_name in experiments:

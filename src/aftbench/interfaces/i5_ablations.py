@@ -113,10 +113,21 @@ class I5MinusSideEffectContract(I5AblationInterface):
         self._ablation_name = "I5-minus-side-effect-contract"
     
     def invoke(self, capability_id: str, params: dict, world: Any, context: dict | None = None) -> dict:
+        # Without a side-effect contract there is no idempotency key either.
+        params = {k: v for k, v in params.items() if k != "idempotency_key"}
         result = super().invoke(capability_id, params, world, context)
-        # Remove effect contract fields
-        for field in ["effect_class", "preconditions", "postconditions", "version"]:
+        # Remove effect contract fields, including version/error metadata
+        # nested inside result payloads.
+        for field in ["effect_class", "preconditions", "postconditions"]:
             result.pop(field, None)
+        from .i0_shared import strip_version_metadata
+        for key in list(result.keys()):
+            val = result[key]
+            if isinstance(val, dict):
+                result[key] = strip_version_metadata(val)
+        result.pop("version", None)
+        result.pop("current_version", None)
+        result.pop("error_code", None)
         return result
 
 

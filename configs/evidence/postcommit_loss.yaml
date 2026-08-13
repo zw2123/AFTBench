@@ -1,6 +1,6 @@
 profile: postcommit_loss
 seed: 42
-output_dir: artifacts/evidence_runs/postcommit_loss
+output_dir: artifacts/evidence_v02/effect_contract/postcommit_loss
 worlds:
   - external_actions
 

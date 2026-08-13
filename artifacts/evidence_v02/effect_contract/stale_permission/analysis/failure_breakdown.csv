@@ -1,0 +1,9 @@
+category,value,count
+world,enterprise_records,135
+interface,I1,27
+interface,I3,27
+interface,I4,27
+interface,I5,27
+interface,I5-minus-side-effect-contract,27
+fault,permission_drift,90
+fault,stale_state,45

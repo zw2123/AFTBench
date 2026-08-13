@@ -20,11 +20,44 @@ class SQLiteCRMWorld(World):
         self.conn = None
         self._effect_log = []
         self._idempotency_keys = {}
+        self._external_updates: dict[str, bool] = {}
+        self._unsafe_commits: list[dict[str, Any]] = []
+
+    def inject_external_update(self, record_id: str, field: str | None = None,
+                               value: Any = None) -> dict[str, Any]:
+        """Simulate an external update landing between read and write."""
+        row = self.conn.execute(
+            "SELECT * FROM contacts WHERE id = ?", (record_id,)
+        ).fetchone()
+        if not row:
+            return {"success": False, "error": f"Contact {record_id} not found",
+                    "error_code": "NOT_FOUND"}
+        new_vc = row["_vc"] + 1
+        self.conn.execute(
+            "UPDATE contacts SET version = ?, _vc = ? WHERE id = ?",
+            (f"v{new_vc}", new_vc, record_id)
+        )
+        if field is not None and field in ("name", "email", "phone", "account"):
+            self.conn.execute(
+                f"UPDATE contacts SET {field} = ? WHERE id = ?", (value, record_id)
+            )
+        self.conn.commit()
+        self._external_updates[record_id] = True
+        return {"success": True, "contact_id": record_id, "version": f"v{new_vc}",
+                "external_update": True}
+
+    def get_unsafe_commits(self) -> list[dict[str, Any]]:
+        return list(self._unsafe_commits)
 
     def reset(self, seed: int = 0) -> None:
         # Remove existing database
         if Path(self.db_path).exists():
             Path(self.db_path).unlink()
+        
+        self._effect_log = []
+        self._idempotency_keys = {}
+        self._external_updates = {}
+        self._unsafe_commits = []
         
         # Create new database
         self.conn = sqlite3.connect(self.db_path)
@@ -171,7 +204,7 @@ class SQLiteCRMWorld(World):
                 "logical_effect_id": f"contact-{existing_id}",
             }
         
-        contact_id = f"con-{uuid.uuid4().hex[:6]}"
+        contact_id = effect.get("contact_id") or f"con-{uuid.uuid4().hex[:6]}"
         
         # Support both old and new parameter formats
         record_type = effect.get("record_type", "contact")
@@ -236,6 +269,16 @@ class SQLiteCRMWorld(World):
                 "error_code": "VERSION_CONFLICT",
                 "current_version": current_version,
             }
+
+        # Stale-overwrite detection: external update landed after the read
+        # and the write does not account for it.
+        if self._external_updates.get(contact_id) and not expected_version:
+            self._unsafe_commits.append({
+                "record_id": contact_id,
+                "reason": "stale_overwrite",
+                "version_at_write": current_version,
+            })
+        self._external_updates.pop(contact_id, None)
         
         # Build update query
         updates = []
@@ -287,7 +330,7 @@ class SQLiteCRMWorld(World):
 
     def _effect_get_contact(self, effect: dict) -> dict:
         """Get a contact by ID."""
-        contact_id = effect.get("contact_id")
+        contact_id = effect.get("contact_id") or effect.get("record_id")
         
         row = self.conn.execute(
             "SELECT * FROM contacts WHERE id = ?", (contact_id,)

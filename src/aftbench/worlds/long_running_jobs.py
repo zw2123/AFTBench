@@ -117,6 +117,11 @@ class LongRunningJobsWorld(World):
             return self._effect_create_job(effect)
         elif etype == "advance_job":
             return self._effect_advance_job(effect)
+        elif etype == "run_job":
+            return self._effect_run_job(effect)
+        elif etype == "start_job":
+            # Alias for capabilities that expose job.start
+            return self._effect_run_job(effect)
         elif etype == "inject_input":
             return self._effect_inject_input(effect)
         elif etype == "cancel_job":
@@ -139,6 +144,80 @@ class LongRunningJobsWorld(World):
         return str(job.get("version", "v0"))
 
     # -- Effect implementations ---------------------------------------------
+
+    def _effect_run_job(self, effect: dict) -> dict[str, Any]:
+        """Create (or resume) a job and run its stages.
+
+        Runs all pending stages unless ``interrupt_at`` is set, in which case
+        only one additional stage completes (the interruption point).  Calling
+        the effect again without ``interrupt_at`` resumes the job to
+        completion — this is what resumable interfaces do after an
+        interrupted invocation.
+        """
+        job_id = effect.get("job_id", f"job-{uuid.uuid4().hex[:6]}")
+        job = self._jobs.get(job_id)
+        created = False
+        if job is None:
+            stages_spec = effect.get("stages", [])
+            stage_list = []
+            for i, s in enumerate(stages_spec):
+                if isinstance(s, dict):
+                    stage_list.append({"index": i, "name": s.get("name", f"stage-{i}"),
+                                       "status": "pending", "output": None})
+                else:
+                    stage_list.append({"index": i, "name": str(s),
+                                       "status": "pending", "output": None})
+            job = {
+                "job_id": job_id,
+                "status": "RUNNING",
+                "stages": stage_list,
+                "total_stages": len(stage_list),
+                "progress": 0.0,
+                "inputs_needed": {},
+                "outputs": {},
+                "version": "v1",
+                "_version_counter": 1,
+                "error": None,
+            }
+            self._jobs[job_id] = job
+            created = True
+
+        interrupt_at = effect.get("interrupt_at")
+        if interrupt_at is not None:
+            # Advance exactly one stage, then stop (interruption point).
+            limit = 1
+        else:
+            limit = job["total_stages"]
+
+        advanced = []
+        if job["status"] != "COMPLETED":
+            for s in job["stages"]:
+                if s["status"] == "pending" and len(advanced) < limit:
+                    s["status"] = "completed"
+                    advanced.append(s["name"])
+
+        completed = sum(1 for s in job["stages"] if s["status"] == "completed")
+        job["progress"] = completed / job["total_stages"] if job["total_stages"] else 1.0
+        if all(s["status"] in ("completed", "skipped") for s in job["stages"]):
+            job["status"] = "COMPLETED"
+            job["progress"] = 1.0
+        else:
+            job["status"] = "RUNNING"
+
+        job["_version_counter"] += 1
+        job["version"] = f"v{job['_version_counter']}"
+
+        return {
+            "success": True,
+            "job_id": job_id,
+            "status": job["status"],
+            "stages_completed": len(advanced),
+            "total_stages": job["total_stages"],
+            "progress": job["progress"],
+            "version": job["version"],
+            "created": created,
+            "effect_class": "mutable",
+        }
 
     def _effect_create_job(self, effect: dict) -> dict[str, Any]:
         self._job_counter += 1

@@ -1,6 +1,6 @@
 profile: stale_permission
 seed: 42
-output_dir: artifacts/evidence_runs/stale_permission
+output_dir: artifacts/evidence_v02/effect_contract/stale_permission
 worlds:
   - enterprise_records
 

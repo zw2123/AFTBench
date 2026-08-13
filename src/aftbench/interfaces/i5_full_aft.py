@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 from .i4_effect import I4EffectInterface, _EFFECT_CLASS_MAP, _READ_ONLY_EFFECTS
-from .i0_shared import CAPS_BY_ID, cap_to_effect
+from .i0_shared import CAPS, CAPS_BY_ID, cap_to_effect, cap_to_effect_world
 class I5FullAFTInterface(I4EffectInterface):
     def __init__(self) -> None:
         super().__init__()
@@ -25,15 +25,26 @@ class I5FullAFTInterface(I4EffectInterface):
             if fv in ("lost_response_after_effect","LOST_RESPONSE_AFTER_EFFECT"):
                 lost_response_fault = True
             elif fv in ("interrupted_execution","INTERRUPTED_EXECUTION"):
-                self._durable[invocation_id] = {"status":"partial","capability_id":capability_id}
+                # Execution interrupted mid-flight: apply the effect up to the
+                # interruption point, then report partial completion.
+                effect = cap_to_effect_world(capability_id, params, world)
+                effect["interrupt_at"] = 1
+                self._durable[invocation_id] = {"status":"partial","capability_id":capability_id,
+                                                "params":params,"world":world,"effect":effect}
                 self._evidence.setdefault(invocation_id,[]).append({"type":"fault_injected","fault":"interrupted_execution"})
-                return {"status":"partial","invocation_id":invocation_id,"error":"Execution interrupted."}
+                try:
+                    result = world.apply_effect(effect)
+                except Exception as exc:
+                    return {"status":"error","invocation_id":invocation_id,"error":str(exc)}
+                return {"status":"partial","invocation_id":invocation_id,
+                        "job_id":result.get("job_id"),"progress":result.get("progress",0.0),
+                        "error":"Execution interrupted."}
         
         idem_key = params.get("idempotency_key")
         if idem_key and idem_key in self._idem:
             c = self._idem[idem_key]
             return {"status":"success","invocation_id":c["invocation_id"],"idempotency_hit":True,"effect_class":c["effect_class"],"version":c["version"],"committed":True,"data":c["data"]}
-        effect = cap_to_effect(capability_id, params)
+        effect = cap_to_effect_world(capability_id, params, world)
         if "error" in effect: return {"status":"error","invocation_id":invocation_id,"error":effect["error"]}
         cap = CAPS_BY_ID.get(capability_id,{})
         et = cap.get("effect_type","")
@@ -52,7 +63,8 @@ class I5FullAFTInterface(I4EffectInterface):
             em = result.get("error","Backend error")
             self._durable[invocation_id] = {"status":"error","error":em}
             self._evidence[invocation_id].append({"type":"backend_error","error":em})
-            return {"status":"error","invocation_id":invocation_id,"lifecycle_state":"failed","effect_class":ec,"version":v,"error":em}
+            return {"status":"error","invocation_id":invocation_id,"lifecycle_state":"failed","effect_class":ec,"version":v,
+                    "error":em,"error_code":result.get("error_code",""),"current_version":result.get("current_version","")}
         
         # Effect has been committed successfully
         payload = {k:v for k,v in result.items() if k!="success"}
@@ -80,6 +92,24 @@ class I5FullAFTInterface(I4EffectInterface):
         d = self._durable.get(invocation_id)
         inv = self._invocations.get(invocation_id)
         if d is None and inv is None: return {"status":"error","error":f"Invocation '{invocation_id}' not found."}
+        # Re-drive the interrupted effect to completion.
+        if d and d.get("effect"):
+            effect = dict(d["effect"])
+            effect.pop("interrupt_at", None)
+            world = d.get("world")
+            if world is not None:
+                try:
+                    result = world.apply_effect(effect)
+                    if not result.get("success", True):
+                        return {"status":"error","error":result.get("error","Backend error")}
+                    if inv: inv["lifecycle_state"] = "completed"
+                    d["status"] = "completed"
+                    self._evidence.setdefault(invocation_id,[]).append({"type":"resumed"})
+                    return {"status":"success","invocation_id":invocation_id,
+                            "lifecycle_state":"completed","job_id":result.get("job_id"),
+                            "progress":result.get("progress",1.0)}
+                except Exception as exc:
+                    return {"status":"error","error":str(exc)}
         if inv: inv["lifecycle_state"] = "resumed"
         if d: d["status"] = "resumed"
         self._evidence.setdefault(invocation_id,[]).append({"type":"resumed"})

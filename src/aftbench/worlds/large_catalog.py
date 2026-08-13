@@ -147,17 +147,33 @@ class LargeCatalogWorld(World):
             "catalog_sizes": catalog_sizes,
             "target_capability_id": self._target_capability_id,
         }
+    def ensure_capability(self, capability_id: str | None) -> None:
+        """Guarantee a capability is present in the catalog (for task targets)."""
+        if not capability_id:
+            return
+        if any(e["capability_id"] == capability_id for e in self._catalog):
+            return
+        domain = capability_id.split(".")[0] if "." in capability_id else ""
+        name = capability_id.split(".")[-1] if "." in capability_id else capability_id
+        entry = {"capability_id": capability_id, "name": name,
+                 "description": f"{name.replace('_', ' ')}", "input_schema": {},
+                 "domain": domain or "generic", "catalog_index": len(self._catalog)}
+        self._catalog.append(entry)
+
     def verify_postconditions(self, task, state) -> bool:
         post = task.get("postconditions", []); catalog = state.get("catalog", [])
         # Check for selected_capability_id postcondition
         selected = task.get("selected_capability_id")
-        target = state.get("target_capability_id")
+        target = task.get("target_capability_id") or state.get("target_capability_id")
         if selected and target:
             if selected != target:
                 return False
         for cond in post:
             ct = cond.get("type")
-            if ct == "capability_discovered":
+            if ct == "capability_selected":
+                if task.get("selected_capability_id") != cond.get("capability_id"):
+                    return False
+            elif ct == "capability_discovered":
                 if not any(e["capability_id"]==cond["capability_id"] for e in catalog): return False
             elif ct == "correct_domain_selected":
                 if cond.get("domain") not in [e.get("domain") for e in catalog]: return False

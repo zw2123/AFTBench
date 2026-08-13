@@ -73,7 +73,10 @@ class ExternalActionsWorld(World):
             elif ctype == "no_duplicate":
                 effect_log = state.get("effect_log", [])
                 entity_id = cond.get("entity_id")
-                creates = [e for e in effect_log if e.get("entity_id") == entity_id and e.get("action") == "create"]
+                creates = [e for e in effect_log
+                           if e.get("entity_id") == entity_id
+                           and e.get("action") in ("create", "create_event",
+                                                   "send_message", "create_entity")]
                 if len(creates) > 1:
                     return False
         return True
@@ -230,7 +233,7 @@ class ExternalActionsWorld(World):
 
         target = effect.get("target")
         body = effect.get("body", "")
-        msg_id = f"msg-{uuid.uuid4().hex[:8]}"
+        msg_id = effect.get("message_id", f"msg-{uuid.uuid4().hex[:8]}")
         
         # Create message entity
         msg = {
@@ -276,9 +279,9 @@ class ExternalActionsWorld(World):
                     "deduplicated": True, "logical_effect_id": f"evt-{existing_id}"}
 
         title = effect.get("title", "Untitled Event")
-        participants = effect.get("participants", [])
+        participants = effect.get("participants") or effect.get("attendees", [])
         start_time = effect.get("start_time", "")
-        evt_id = f"evt-{uuid.uuid4().hex[:6]}"
+        evt_id = effect.get("event_id", f"evt-{uuid.uuid4().hex[:6]}")
         
         evt = {
             "id": evt_id,
