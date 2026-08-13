@@ -2,10 +2,9 @@
 
 > **Project:** AFTBench  
 > **Paper:** *Tools Without Hands: Behavioral Contracts and Controlled Evaluation for Agent-First Tooling*  
-> **Current stage:** Measurement stack repaired; deterministic evidence requires final semantic calibration  
+> **Current stage:** Phase 1–6, 8 completed; remaining phases pending micro-experiment gates  
 > **Primary goal:** Complete and freeze the deterministic benchmark before any LLM experiments  
-> **Recommended execution window:** 4 hours  
-> **Scope:** No new LLM APIs, no local LLM deployment, no large task expansion, no new benchmark worlds unless required for validation
+> **Last execution:** 2026-08-13 — 3 phases completed (git freeze, timing, outcome semantics, I3 regression)
 
 ---
 
