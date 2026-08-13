@@ -1,0 +1,31 @@
+profile: ablation_no_discovery
+seed: 42
+output_dir: artifacts/ablations/no_discovery
+base_config: configs/pilot.yaml
+
+description: >
+  Ablation: removes the tool discovery primitive from I5.
+  Agents cannot list or search available tools; they must
+  rely on instruction context alone to select the correct tool.
+
+removed_primitives:
+  - tools.list_available
+  - tools.search_catalog
+
+interfaces:
+  - I0
+  - I1
+  - I2
+  - I3
+  - I4
+  # I5 with discovery removed — only invoke remains, no list/search
+
+worlds:
+  - enterprise_records
+  - long_running_jobs
+  - large_catalog
+  - external_actions
+
+faults: null  # inherit from base
+seeds: [42, 123, 456]
+resumable: true

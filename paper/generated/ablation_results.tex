@@ -1,0 +1,97 @@
+% AFTBench Ablation Results
+% Generated: 2026-08-04T12:32:00+08:00
+% Source: artifacts/evidence_runs/primitive_ablations/analysis/
+% Agent: scripted-v1 (deterministic)
+
+\section{Primitive Ablation Results}
+
+\subsection{Overview}
+We evaluate the contribution of each AFT primitive by comparing I5-full against seven I5-minus-X ablation variants. Each ablation removes exactly one primitive while preserving all others.
+
+\textbf{Experimental setup:}
+\begin{itemize}
+    \item 4 worlds $\times$ 8 interfaces $\times$ 3 faults $\times$ 2 seeds $\times$ 4 tasks
+    \item Total: 768 runs
+    \item Valid pairs per contrast: 96
+    \item Metric: state\_correct\_completion (binary)
+\end{itemize}
+
+\subsection{Ablation Comparison Table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Contrast} & \textbf{Pairs} & \textbf{I5-full} & \textbf{Ablation} & \textbf{$\Delta$} & \textbf{Wins} & \textbf{Ties} \\
+\hline
+I5 vs.\ minus-selective-discovery & 96 & 0.75 & 0.75 & 0.00 & 0 & 96 \\
+I5 vs.\ minus-resumable-invocation & 96 & 0.75 & 0.75 & 0.00 & 0 & 96 \\
+I5 vs.\ minus-observable-execution & 96 & 0.75 & 0.75 & 0.00 & 0 & 96 \\
+I5 vs.\ minus-structured-output & 96 & 0.75 & 0.75 & 0.00 & 0 & 96 \\
+I5 vs.\ minus-side-effect-contract & 96 & 0.75 & 0.75 & 0.00 & 0 & 96 \\
+I5 vs.\ minus-durable-state & 96 & 0.75 & 0.75 & 0.00 & 0 & 96 \\
+I5 vs.\ minus-verification & 96 & 0.75 & 0.75 & 0.00 & 0 & 96 \\
+\hline
+\end{tabular}
+\caption{Ablation results: I5-full vs.\ I5-minus-X variants. $\Delta$ = mean difference in state\_correct\_completion. Wins/Ties/Losses count pairwise comparisons.}
+\label{tab:ablation_results}
+\end{table}
+
+\subsection{Key Findings}
+
+\textbf{Null result:} All ablation variants show identical performance to I5-full (mean difference = 0.00, all ties).
+
+\textbf{Interpretation:}
+\begin{itemize}
+    \item The deterministic scripted agent does not differentially utilize AFT primitives
+    \item Primitive benefits may be agent-dependent (require LLM or adaptive agent)
+    \item Alternatively, primitives may provide overhead costs without reliability gains for simple tasks
+    \item This null result is scientifically valid and informative
+\end{itemize}
+
+\textbf{Limitations:}
+\begin{itemize}
+    \item Scripted agent follows fixed policy, cannot exploit advanced features
+    \item Task set may not exercise primitive-specific failure modes
+    \item Larger task set or LLM agent may reveal primitive contributions
+\end{itemize}
+
+\subsection{Bootstrap Confidence Intervals}
+
+% Note: All intervals are zero-width due to null result
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Contrast} & \textbf{Mean $\Delta$} & \textbf{95\% CI} & \textbf{Width} \\
+\hline
+minus-selective-discovery & 0.00 & [0.00, 0.00] & 0.00 \\
+minus-resumable-invocation & 0.00 & [0.00, 0.00] & 0.00 \\
+minus-observable-execution & 0.00 & [0.00, 0.00] & 0.00 \\
+minus-structured-output & 0.00 & [0.00, 0.00] & 0.00 \\
+minus-side-effect-contract & 0.00 & [0.00, 0.00] & 0.00 \\
+minus-durable-state & 0.00 & [0.00, 0.00] & 0.00 \\
+minus-verification & 0.00 & [0.00, 0.00] & 0.00 \\
+\hline
+\end{tabular}
+\caption{Bootstrap confidence intervals (2,000 samples, task-clustered). All intervals are zero-width due to null result.}
+\label{tab:ablation_bootstrap}
+\end{table}
+
+\subsection{Discussion}
+
+The null ablation result suggests that AFT primitives do not improve reliability for the deterministic scripted agent on the current task set. This finding is consistent with the hypothesis that:
+
+\begin{enumerate}
+    \item Primitive benefits are agent-dependent (require adaptive decision-making)
+    \item Primitive benefits are task-dependent (require specific failure modes)
+    \item Primitive overhead may offset reliability gains for simple tasks
+\end{enumerate}
+
+Future work with LLM agents and expanded task sets may reveal primitive-specific benefits.
+
+% Source artifact: artifacts/evidence_runs/primitive_ablations/
+% Manifest hash: See artifacts/evidence_runs/primitive_ablations/manifest.json
+% Generation timestamp: 2026-08-04T12:32:00+08:00
+% Agent type: scripted-v1 (deterministic)
+% Statistical method: Paired comparison with task-clustered bootstrap

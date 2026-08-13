@@ -1,0 +1,12 @@
+timestamp: 2026-08-03T22:35:00+08:00
+git_commit: working-tree (no commits yet)
+acceptance_command: python scripts/check_acceptance.py
+result_artifacts:
+  - artifacts/smoke/results.csv
+  - artifacts/pilot/results.csv
+  - artifacts/pilot/traces.jsonl
+  - artifacts/pilot/manifest.json
+  - artifacts/pilot/paired_summary.csv
+  - artifacts/pilot/failure_breakdown.csv
+  - reports/PILOT_REPORT.md
+status: PASS

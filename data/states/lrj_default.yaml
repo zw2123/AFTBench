@@ -1,0 +1,91 @@
+state_id: lrj_default
+world: long_running_jobs
+version: 1
+description: "Default long-running jobs state with data partitions and job templates"
+
+data_partitions:
+  - partition_id: Q1
+    label: "Q1 Sales Data"
+    record_count: 15420
+    status: available
+    last_processed: null
+
+  - partition_id: Q2
+    label: "Q2 Sales Data"
+    record_count: 18300
+    status: available
+    last_processed: null
+
+  - partition_id: Q3
+    label: "Q3 Sales Data"
+    record_count: 21050
+    status: available
+    last_processed: null
+
+job_templates:
+  - template_id: quarterly_report
+    stages:
+      - stage: 1
+        name: "process_partition"
+        requires_input: false
+        estimated_duration_seconds: 120
+      - stage: 2
+        name: "combine_results"
+        requires_input: false
+        estimated_duration_seconds: 60
+      - stage: 3
+        name: "generate_summary"
+        requires_input: false
+        estimated_duration_seconds: 30
+
+  - template_id: data_migration
+    stages:
+      - stage: 1
+        name: "validate_source"
+        requires_input: false
+        estimated_duration_seconds: 60
+      - stage: 2
+        name: "select_target_schema"
+        requires_input: true
+        input_prompt: "Enter target schema name"
+        estimated_duration_seconds: 10
+      - stage: 3
+        name: "migrate_records"
+        requires_input: false
+        estimated_duration_seconds: 300
+      - stage: 4
+        name: "verify_integrity"
+        requires_input: false
+        estimated_duration_seconds: 60
+
+  - template_id: batch_index
+    stages:
+      - stage: 1
+        name: "scan_documents"
+        requires_input: false
+        estimated_duration_seconds: 180
+      - stage: 2
+        name: "build_index"
+        requires_input: false
+        estimated_duration_seconds: 240
+      - stage: 3
+        name: "verify_integrity"
+        requires_input: false
+        estimated_duration_seconds: 60
+
+active_jobs: []
+
+completed_jobs: []
+
+reports: []
+
+available_schemas:
+  - schema_id: production_v1
+    name: "Production V1"
+    tables: [customers, orders, products]
+  - schema_id: production_v2
+    name: "Production V2"
+    tables: [customers, orders, products, analytics, audit_log]
+  - schema_id: staging
+    name: "Staging"
+    tables: [customers_staging, orders_staging]

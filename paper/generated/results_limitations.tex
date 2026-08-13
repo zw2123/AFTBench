@@ -1,0 +1,109 @@
+% AFTBench Results Limitations
+% Generated: 2026-08-04T12:36:00+08:00
+% Source: artifacts/evidence_runs/
+% Agent: scripted-v1 (deterministic)
+
+\section{Limitations}
+
+\subsection{Agent Limitations}
+
+\textbf{Deterministic scripted agent:}
+\begin{itemize}
+    \item Does not differentially utilize AFT primitives
+    \item Cannot exploit advanced features (resumability, reconciliation, verification)
+    \item Leads to null ablation results (all I5-minus-X variants perform identically to I5-full)
+    \item Primitive benefits may be agent-dependent (require LLM or adaptive agent)
+\end{itemize}
+
+\textbf{Implication:} Cannot make general claims about primitive superiority without LLM evidence.
+
+\subsection{Task Set Limitations}
+
+\textbf{32 tasks (8 per world):}
+\begin{itemize}
+    \item May not exercise all primitive-specific failure modes
+    \item Limited diversity in workload factors
+    \item Held-out split (37.5\%) reduces statistical power
+\end{itemize}
+
+\textbf{Implication:} Results may not generalize to larger, more diverse task sets.
+
+\subsection{World Limitations}
+
+\textbf{Synthetic worlds:}
+\begin{itemize}
+    \item Simplified operational semantics
+    \item No real network boundaries or process isolation
+    \item Fast execution (milliseconds) may underestimate overhead
+    \item No production-like persistence or concurrency
+\end{itemize}
+
+\textbf{Implication:} Overhead estimates are lower bounds; real-world costs may be higher.
+
+\subsection{Fault Coverage Limitations}
+
+\textbf{10 execution faults:}
+\begin{itemize}
+    \item Some faults not exercised (e.g., tool\_evolution, handle\_expiration)
+    \item Fault injection is deterministic, not stochastic
+    \item No compound faults (multiple simultaneous failures)
+\end{itemize}
+
+\textbf{Implication:} Recovery mechanisms may not be fully tested.
+
+\subsection{Statistical Limitations}
+
+\textbf{Paired analysis:}
+\begin{itemize}
+    \item 96 valid pairs per ablation contrast (adequate but not large)
+    \item Bootstrap intervals zero-width for null results
+    \item No multiple-comparison correction
+\end{itemize}
+
+\textbf{Implication:} Small effect sizes may not be detected.
+
+\subsection{Missing Evidence}
+
+\textbf{Not tested:}
+\begin{itemize}
+    \item Fallback discovery recall preservation
+    \item Workload-dependent primitive value
+    \item Production-like backend replication
+    \item LLM agent behavior
+\end{itemize}
+
+\textbf{Implication:} Claims about these aspects are unsupported.
+
+\subsection{External Validity Threats}
+
+\begin{enumerate}
+    \item \textbf{Agent type:} Results specific to deterministic scripted agent
+    \item \textbf{Task domain:} Synthetic CRM/journal/messaging tasks
+    \item \textbf{Backend semantics:} Simplified synthetic operations
+    \item \textbf{Fault model:} Deterministic injection, not real-world failures
+    \item \textbf{Scale:} 1,392 runs (adequate for validation, not production benchmarking)
+\end{enumerate}
+
+\subsection{Internal Validity Strengths}
+
+\begin{enumerate}
+    \item \textbf{Controlled experiment:} Same task, backend, agent, faults across interfaces
+    \item \textbf{Source tracking:} Complete reproducibility evidence
+    \item \textbf{Trace validation:} Lifecycle events verified
+    \item \textbf{Taxonomy separation:} Faults vs.\ workload factors clearly distinguished
+    \item \textbf{Statistical rigor:} Paired comparisons with bootstrap intervals
+\end{enumerate}
+
+\subsection{Recommendations for Future Work}
+
+\begin{enumerate}
+    \item \textbf{LLM agent experiments:} Test with GPT-4, Claude, Qwen to validate primitive benefits
+    \item \textbf{Expanded task set:} 100+ tasks with diverse workload factors
+    \item \textbf{Production backend:} SQLite/PostgreSQL micro-replication
+    \item \textbf{Real-world faults:} Stochastic fault injection, compound failures
+    \item \textbf{Cost analysis:} Detailed token/latency/cost measurements with LLMs
+\end{enumerate}
+
+% Source artifact: artifacts/evidence_runs/
+% Generation timestamp: 2026-08-04T12:36:00+08:00
+% Agent type: scripted-v1 (deterministic)

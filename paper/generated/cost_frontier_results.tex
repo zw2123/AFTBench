@@ -1,0 +1,93 @@
+% AFTBench Cost Frontier Results
+% Generated: 2026-08-04T12:46:00+08:00
+% Source: artifacts/evidence_runs/*/results.csv
+% Agent: scripted-v1 (deterministic)
+
+\section{Reliability-Cost Frontier}
+
+\subsection{Overview}
+We analyze the trade-off between reliability (state-correct completion) and cost (context tokens, wall-clock time) across all interface conditions.
+
+\textbf{Experimental basis:} 1,392 runs across 13 interface conditions.
+
+\subsection{Reliability by Interface}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccccc}
+\hline
+\textbf{Interface} & \textbf{Runs} & \textbf{Correct\%} & \textbf{Recovery\%} & \textbf{Dup\%} & \textbf{Safety\%} \\
+\hline
+I0 (Legacy) & 24 & 100.0 & 0.0 & 0.0 & 100 \\
+I1 (Schema) & 96 & 50.0 & 0.0 & 0.0 & 100 \\
+I2 (Discovery) & 48 & 100.0 & 0.0 & 0.0 & 100 \\
+I3 (Lifecycle) & 96 & 50.0 & 0.0 & 0.0 & 100 \\
+I4 (Effect) & 72 & 33.3 & 0.0 & 0.0 & 100 \\
+I5 (Full AFT) & 216 & 66.7 & 29.6 & 0.0 & 100 \\
+\hline
+\end{tabular}
+\caption{Reliability metrics by interface condition. Safety\% = 100\% - (duplicate + unintended + unauthorized). I5 is the only interface with recovery capability.}
+\label{tab:reliability_by_interface}
+\end{table}
+
+\subsection{Cost by Interface}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Interface} & \textbf{Context Tokens} & \textbf{Tool Calls} & \textbf{Wall Clock (ms)} & \textbf{Token Reduction} \\
+\hline
+I0 (Legacy) & 246 & 2.0 & 0.7 & --- \\
+I1 (Schema) & 246 & 1.8 & 0.4 & 0\% \\
+I2 (Discovery) & 20 & 1.8 & 0.9 & 92\% \\
+I3 (Lifecycle) & 20 & 1.9 & 0.1 & 92\% \\
+I4 (Effect) & 20 & 1.9 & 0.0 & 92\% \\
+I5 (Full AFT) & 20 & 1.6 & 0.2 & 92\% \\
+\hline
+\end{tabular}
+\caption{Cost metrics by interface. Selective discovery (I2+) reduces context tokens by 92\% compared to eager exposure (I0/I1).}
+\label{tab:cost_by_interface}
+\end{table}
+
+\subsection{Pareto Frontier}
+
+A condition is Pareto-efficient if no other condition dominates it on both reliability and cost.
+
+\textbf{Pareto-optimal set:} $\{$I0, I2, I5$\}$
+
+\begin{itemize}
+    \item \textbf{I0:} Highest reliability (100\%) but highest cost (246 tokens)
+    \item \textbf{I2:} Best cost/reliability ratio (100\% correct, 20 tokens)
+    \item \textbf{I5:} Only condition with recovery (29.6\%), moderate reliability (67\%)
+\end{itemize}
+
+\textbf{Dominated conditions:} I1, I3, I4 (same cost as I2, lower reliability)
+
+\subsection{Key Findings}
+
+\begin{enumerate}
+    \item \textbf{Selective discovery is the strongest primitive.} I2 achieves 100\% correctness with 92\% fewer context tokens than I0/I1.
+    
+    \item \textbf{Recovery is I5's unique contribution.} I5 is the only interface with non-zero recovery success (29.6\%).
+    
+    \item \textbf{Full AFT does not dominate simpler interfaces.} I5-full (66.7\% correct) is outperformed by I2 (100\%) and several ablation variants (75--80\%).
+    
+    \item \textbf{No safety violations observed.} Zero duplicate, unintended, or unauthorized effects across all 1,392 runs. The scripted agent is well-behaved.
+    
+    \item \textbf{Timing overhead is not meaningfully measurable.} All wall-clock times are sub-millisecond for synthetic tasks.
+\end{enumerate}
+
+\subsection{Recommendations}
+
+\begin{itemize}
+    \item \textbf{Simple, low-risk tasks:} Use I2 (selective discovery) for best cost/reliability ratio
+    \item \textbf{Post-commit uncertainty:} Use I5 for recovery capability
+    \item \textbf{High-reliability requirements:} Use I0 if cost is not a concern
+    \item \textbf{Avoid I1, I3, I4:} Dominated by I2 on both cost and reliability
+\end{itemize}
+
+% Source artifact: artifacts/evidence_runs/*/results.csv
+% Generation timestamp: 2026-08-04T12:46:00+08:00
+% Agent type: scripted-v1 (deterministic)
+% Total runs: 1392

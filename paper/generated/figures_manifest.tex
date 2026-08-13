@@ -1,0 +1,94 @@
+% AFTBench Figures Manifest
+% Generated: 2026-08-04T12:37:00+08:00
+% Source: artifacts/evidence_runs/
+% Agent: scripted-v1 (deterministic)
+
+\section{Figures Manifest}
+
+\subsection{Planned Figures}
+
+The following figures are planned for the paper. Status indicates whether data supports generation.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\hline
+\textbf{Figure} & \textbf{Description} & \textbf{Status} & \textbf{Data Source} \\
+\hline
+discovery\_frontier.pdf & Context vs.\ recall trade-off & NOT\_GENERATED & discovery\_frontier/ \\
+postcommit\_recovery.pdf & Recovery mechanisms comparison & NOT\_GENERATED & postcommit\_loss/ \\
+interruption\_recovery.pdf & Resumability and durable state & NOT\_GENERATED & interruption\_recovery/ \\
+stale\_permission.pdf & Preconditions and authority & NOT\_GENERATED & stale\_permission/ \\
+interface\_ladder.pdf & Interface ladder comparisons & NOT\_GENERATED & primitive\_ablations/ \\
+primitive\_ablation.pdf & Ablation results & NOT\_GENERATED & primitive\_ablations/ \\
+reliability\_cost\_frontier.pdf & Reliability vs.\ cost trade-off & NOT\_GENERATED & All experiments \\
+interface\_cost\_breakdown.pdf & Cost breakdown by interface & NOT\_GENERATED & All experiments \\
+\hline
+\end{tabular}
+\caption{Planned figures for the paper. All figures require additional plotting scripts to generate from experimental data.}
+\label{tab:figures_manifest}
+\end{table}
+
+\subsection{Figure Generation Requirements}
+
+Each figure requires:
+\begin{enumerate}
+    \item Data extraction from experimental results (CSV/JSON)
+    \item Statistical analysis (means, confidence intervals)
+    \item Plotting with matplotlib/pgfplots
+    \item Export to PDF format
+\end{enumerate}
+
+\subsection{Current Status}
+
+\textbf{Data available:} ✓
+\begin{itemize}
+    \item All experimental results in artifacts/evidence\_runs/
+    \item Paired analysis with bootstrap intervals
+    \item Trace data for detailed inspection
+\end{itemize}
+
+\textbf{Plotting scripts:} ✗
+\begin{itemize}
+    \item Not yet implemented
+    \item Require Python matplotlib or LaTeX pgfplots
+    \item Estimated effort: 2--3 hours for all figures
+\end{itemize}
+
+\textbf{Recommendation:} Generate figures in follow-up work after paper draft complete.
+
+\subsection{Alternative: Tables Only}
+
+Given null ablation results and limited figure generation time, the paper may rely primarily on tables:
+
+\begin{itemize}
+    \item Table 1: Experimental setup (deterministic\_experiment\_setup.tex)
+    \item Table 2: Interface ladder results (interface\_ladder\_results.tex)
+    \item Table 3: Ablation results (ablation\_results.tex)
+    \item Table 4: Cost frontier (cost\_frontier\_results.tex)
+\end{itemize}
+
+Tables can be generated directly from CSV data without plotting scripts.
+
+\subsection{Data Availability}
+
+All experimental data is available in:
+\begin{verbatim}
+artifacts/evidence_runs/
+├── primitive_ablations/
+│   ├── results.csv (768 runs)
+│   ├── traces.jsonl
+│   └── analysis/
+│       ├── explicit_contrasts.csv
+│       └── bootstrap_intervals.csv
+├── discovery_frontier/ (96 runs)
+├── postcommit_loss/ (168 runs)
+├── interruption_recovery/ (120 runs)
+└── stale_permission/ (240 runs)
+\end{verbatim}
+
+Total: 1,392 runs with complete traces and analysis.
+
+% Source artifact: artifacts/evidence_runs/
+% Generation timestamp: 2026-08-04T12:37:00+08:00
+% Agent type: scripted-v1 (deterministic)

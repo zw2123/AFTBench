@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aftbench.dev/schemas/result.schema.json",
+  "title": "AFTBench Result Row",
+  "description": "Schema for a single result row in the benchmark results CSV/JSON.",
+  "type": "object",
+  "required": [
+    "result_id",
+    "trace_id",
+    "task_id",
+    "world",
+    "interface",
+    "fault_type",
+    "seed",
+    "agent_id",
+    "success",
+    "postconditions_passed",
+    "safety_predicates_passed",
+    "turns_used",
+    "tool_calls_used",
+    "wall_time_seconds"
+  ],
+  "properties": {
+    "result_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique result identifier"
+    },
+    "trace_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Reference to the trace that produced this result"
+    },
+    "task_id": {
+      "type": "string",
+      "description": "Reference to the task definition"
+    },
+    "world": {
+      "type": "string",
+      "enum": [
+        "enterprise_records",
+        "long_running_jobs",
+        "large_catalog",
+        "external_actions"
+      ]
+    },
+    "interface": {
+      "type": "string",
+      "enum": ["I0", "I1", "I2", "I3", "I4", "I5"]
+    },
+    "fault_type": {
+      "type": "string",
+      "enum": [
+        "none",
+        "lost_response_after_effect",
+        "interrupted_execution",
+        "partial_completion",
+        "handle_expiration",
+        "stale_state",
+        "entity_ambiguity",
+        "permission_drift",
+        "failure_before_effect",
+        "tool_confusion",
+        "catalog_scale"
+      ]
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "agent_id": {
+      "type": "string"
+    },
+    "success": {
+      "type": "boolean",
+      "description": "Whether all postconditions were met"
+    },
+    "postconditions_passed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "condition": { "type": "string" },
+          "passed": { "type": "boolean" }
+        }
+      }
+    },
+    "safety_predicates_passed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "predicate": { "type": "string" },
+          "passed": { "type": "boolean" }
+        }
+      }
+    },
+    "turns_used": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tool_calls_used": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "wall_time_seconds": {
+      "type": "number",
+      "minimum": 0
+    },
+    "tokens_used": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "faults_encountered": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Fault types actually injected during this run"
+    },
+    "failure_reason": {
+      "type": ["string", "null"],
+      "description": "Human-readable failure reason if success is false"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "References to evidence artifacts"
+    }
+  },
+  "additionalProperties": false
+}

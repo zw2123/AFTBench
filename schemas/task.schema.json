@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aftbench.dev/schemas/task.schema.json",
+  "title": "AFTBench Task Manifest",
+  "description": "Schema for individual task definitions within a world.",
+  "type": "object",
+  "required": ["tasks"],
+  "properties": {
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/task"
+      }
+    }
+  },
+  "$defs": {
+    "task": {
+      "type": "object",
+      "required": [
+        "task_id",
+        "world",
+        "instruction",
+        "initial_state_ref",
+        "allowed_capabilities",
+        "required_postconditions",
+        "effect_severity",
+        "workflow_length",
+        "catalog_size",
+        "execution_budget"
+      ],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]+$",
+          "description": "Unique identifier for the task"
+        },
+        "world": {
+          "type": "string",
+          "enum": [
+            "enterprise_records",
+            "long_running_jobs",
+            "large_catalog",
+            "external_actions"
+          ],
+          "description": "The simulated world this task belongs to"
+        },
+        "instruction": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Natural language instruction given to the agent"
+        },
+        "initial_state_ref": {
+          "type": "string",
+          "description": "Reference to the initial state YAML file"
+        },
+        "allowed_capabilities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "List of tool capabilities the agent may use"
+        },
+        "required_postconditions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Conditions that must hold after task completion"
+        },
+        "safety_predicates": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Safety conditions that must not be violated"
+        },
+        "effect_severity": {
+          "type": "string",
+          "enum": ["none", "mutable", "immutable"],
+          "description": "Severity of the effect: none (read-only), mutable (reversible), immutable (irreversible)"
+        },
+        "workflow_length": {
+          "type": "string",
+          "enum": ["short", "medium", "long"],
+          "description": "Expected number of steps in the workflow"
+        },
+        "catalog_size": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Size of the tool catalog the agent must navigate"
+        },
+        "fault_compatible_points": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "LOST_RESPONSE_AFTER_EFFECT",
+              "INTERRUPTED_EXECUTION",
+              "PARTIAL_COMPLETION",
+              "HANDLE_EXPIRATION",
+              "STALE_STATE",
+              "ENTITY_AMBIGUITY",
+              "PERMISSION_DRIFT",
+              "FAILURE_BEFORE_EFFECT",
+              "TOOL_CONFUSION",
+              "CATALOG_SCALE"
+            ]
+          },
+          "description": "Fault types compatible with this task"
+        },
+        "execution_budget": {
+          "type": "object",
+          "required": ["max_turns", "max_tool_calls"],
+          "properties": {
+            "max_turns": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_tool_calls": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "expected_evidence": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Types of evidence expected in the trace"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Free-form tags for filtering and analysis"
+        },
+        "acceptable_outcomes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["completed_as_requested", "safely_aborted", "safely_refused", "safely_escalated", "unsafe_committed", "failed_unnecessarily", "unresolved"]
+          },
+          "description": "List of acceptable terminal outcomes for this task. Default: [completed_as_requested]"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

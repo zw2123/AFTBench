@@ -1,0 +1,116 @@
+% AFTBench Deterministic Experiment Setup
+% Generated: 2026-08-04T12:30:00+08:00
+% Source: artifacts/evidence_runs/
+% Agent: scripted-v1 (deterministic)
+
+\section{Experimental Setup}
+
+\subsection{Interface Conditions}
+We evaluate six interface conditions representing progressive adoption of Agent-First Tooling primitives:
+
+\begin{itemize}
+    \item \textbf{I0 (Legacy):} Synchronous request-response, no lifecycle management
+    \item \textbf{I1 (Schema-Normalized):} Input validation, structured envelopes
+    \item \textbf{I2 (Discovery-Aware):} Selective discovery, compact metadata
+    \item \textbf{I3 (Lifecycle-Aware):} Invocation identity, resumable execution
+    \item \textbf{I4 (Effect-Aware):} Effect contracts, preconditions, idempotency
+    \item \textbf{I5 (Full AFT):} Durable state, reconciliation, verification
+\end{itemize}
+
+\subsection{Ablation Conditions}
+To isolate the contribution of each AFT primitive, we define seven ablation variants of I5:
+
+\begin{itemize}
+    \item \textbf{I5-minus-selective-discovery:} Full catalog exposure
+    \item \textbf{I5-minus-resumable-invocation:} No resume capability
+    \item \textbf{I5-minus-observable-execution:} No status queries
+    \item \textbf{I5-minus-structured-output:} Free-form results
+    \item \textbf{I5-minus-side-effect-contract:} No preconditions/postconditions
+    \item \textbf{I5-minus-durable-state:} Process-local state only
+    \item \textbf{I5-minus-verification:} No postcondition checking
+\end{itemize}
+
+\subsection{Benchmark Worlds}
+Four controlled synthetic worlds provide diverse operational scenarios:
+
+\begin{itemize}
+    \item \textbf{Enterprise Records:} CRM-like contact/account management (8 tasks)
+    \item \textbf{Long-Running Jobs:} Multi-stage background jobs (8 tasks)
+    \item \textbf{Large Catalog:} Tool discovery at scale 10--1000 (8 tasks)
+    \item \textbf{External Actions:} Message/event operations (8 tasks)
+\end{itemize}
+
+\subsection{Task Set}
+Total: 32 validated task instances (8 per world)
+\begin{itemize}
+    \item Development split: 20 tasks (62.5\%)
+    \item Held-out split: 12 tasks (37.5\%)
+\end{itemize}
+
+\subsection{Execution Faults}
+Ten execution fault types test recovery and safety mechanisms:
+\begin{enumerate}
+    \item failure\_before\_effect
+    \item lost\_response\_after\_effect
+    \item partial\_completion
+    \item interrupted\_execution
+    \item stale\_state
+    \item permission\_drift
+    \item event\_loss
+    \item handle\_expiration
+    \item tool\_evolution
+    \item entity\_ambiguity
+\end{enumerate}
+
+\subsection{Workload Factors}
+Six workload factors (separate from faults) affect task difficulty:
+\begin{itemize}
+    \item catalog\_size: 10, 50, 200, 1000
+    \item tool\_confusion\_level: low, medium, high
+    \item entity\_ambiguity\_level: none, low, high
+    \item workflow\_length: short, medium, long
+    \item effect\_severity: reversible, irreversible
+    \item approval\_required: true, false
+\end{itemize}
+
+\subsection{Experimental Scale}
+\begin{itemize}
+    \item Total runs: 1,392
+    \item Ablation experiments: 768 runs (8 interfaces $\times$ 4 worlds $\times$ 3 faults $\times$ 2 seeds $\times$ 4 tasks)
+    \item Canonical experiments: 624 runs (4 experiments)
+    \item Seeds: 42, 123, 456
+    \item All experiments use deterministic scripted agent (no LLMs)
+\end{itemize}
+
+\subsection{Metrics}
+\textbf{Reliability metrics:}
+\begin{itemize}
+    \item state\_correct\_completion (primary)
+    \item duplicate\_effect
+    \item unintended\_effect
+    \item unauthorized\_effect
+    \item residual\_effect
+    \item recovery\_success
+\end{itemize}
+
+\textbf{Cost metrics:}
+\begin{itemize}
+    \item wall\_clock\_ms
+    \item tool\_calls
+    \item context\_tokens
+    \item recovery\_ms
+    \item verification\_ms
+\end{itemize}
+
+\subsection{Statistical Analysis}
+\begin{itemize}
+    \item Paired comparisons with task-level clustering
+    \item Bootstrap confidence intervals (2,000 samples, seed=42)
+    \item Interface ladder contrasts: I1--I0, I2--I1, I3--I2, I4--I3, I5--I4, I5--I0
+    \item Ablation contrasts: I5-full vs.\ each I5-minus-X variant
+\end{itemize}
+
+% Source artifact: artifacts/evidence_runs/
+% Manifest hash: See individual experiment directories
+% Generation timestamp: 2026-08-04T12:30:00+08:00
+% Agent type: scripted-v1 (deterministic)

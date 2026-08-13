@@ -1,0 +1,66 @@
+state_id: ea_default
+world: external_actions
+version: 1
+description: "Default external actions state with calendar, messaging, and CMS"
+
+calendar:
+  events:
+    - event_id: evt_001
+      title: "Weekly Team Standup"
+      date: "2025-09-08"
+      time: "09:00"
+      recurrence: weekly
+      attendees:
+        - alice@acme.com
+        - bob@acme.com
+        - carol@acme.com
+      status: confirmed
+
+    - event_id: evt_002
+      title: "Product Demo"
+      date: "2025-09-10"
+      time: "15:00"
+      recurrence: null
+      attendees:
+        - alice@acme.com
+        - dave@acme.com
+      status: confirmed
+
+messaging:
+  channels:
+    - channel_id: announcements
+      name: "#announcements"
+      members: [alice, bob, carol, dave, eve]
+    - channel_id: engineering
+      name: "#engineering"
+      members: [alice, bob, carol]
+    - channel_id: general
+      name: "#general"
+      members: [alice, bob, carol, dave, eve, frank]
+
+  messages:
+    - message_id: msg_001
+      channel: announcements
+      author: alice
+      text: "Welcome to Q3! Please review the OKR document."
+      timestamp: "2025-08-01T09:00:00Z"
+      edited: false
+
+cms:
+  drafts:
+    - draft_id: draft_001
+      title: "Q2 Recap"
+      status: published
+      author: bob
+      content: "Q2 was a strong quarter with 15% growth..."
+      published_at: "2025-07-01T12:00:00Z"
+
+  available_templates:
+    - template_id: blog_post
+      fields: [title, content, category, tags]
+    - template_id: announcement
+      fields: [title, content, priority]
+    - template_id: changelog
+      fields: [version, changes, date]
+
+approval_queue: []

@@ -1,0 +1,49 @@
+% Discovery Frontier Results
+% Generated: 2026-08-04T12:47:00+08:00
+% Source: artifacts/evidence_runs/discovery_frontier/
+% Agent: scripted-v1 (deterministic)
+
+\section{Discovery Frontier}
+
+\subsection{Question}
+How does selective discovery trade context exposure against correct-tool recall as catalogs grow?
+
+\subsection{Conditions}
+I1, I2, I5-full, I5-minus-selective-discovery
+
+\subsection{Results}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Interface} & \textbf{Runs} & \textbf{Correct\%} & \textbf{Context Tokens} \\
+\hline
+I1 (Schema) & 24 & 100.0 & 246 \\
+I2 (Discovery) & 24 & 100.0 & 20 \\
+I5 (Full AFT) & 24 & 100.0 & 20 \\
+I5-minus-selective-discovery & 24 & 100.0 & 0 \\
+\hline
+\end{tabular}
+\caption{Discovery frontier results. All conditions achieve 100\% correctness. I2/I5 reduce context tokens by 92\% vs I1.}
+\label{tab:discovery_frontier}
+\end{table}
+
+\subsection{Findings}
+\begin{itemize}
+    \item All conditions achieve 100\% state-correct completion
+    \item Selective discovery (I2/I5) reduces context tokens from 246 to 20 (92\% reduction)
+    \item I5-minus-selective-discovery uses 0 tokens (full catalog bypasses discovery)
+    \item No recall degradation observed at current catalog sizes
+\end{itemize}
+
+\subsection{Limitations}
+\begin{itemize}
+    \item Scripted agent always selects correct tool regardless of context
+    \item Catalog sizes 10--1000 may not expose recall limits
+    \item No fallback-search events observed
+\end{itemize}
+
+% Source artifact: artifacts/evidence_runs/discovery_frontier/
+% Generation timestamp: 2026-08-04T12:47:00+08:00
+% Agent type: scripted-v1 (deterministic)

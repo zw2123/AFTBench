@@ -1,0 +1,34 @@
+profile: ablation_no_durable_state
+seed: 42
+output_dir: artifacts/ablations/no_durable_state
+base_config: configs/pilot.yaml
+
+description: >
+  Ablation: removes the durable state primitives from I5.
+  Agents cannot persist or retrieve durable state across
+  session boundaries. Tests whether durable state is critical
+  for handling INTERRUPTED_EXECUTION and recovery scenarios.
+
+removed_primitives:
+  - state.persist
+  - state.restore
+  - state.get_durable
+  - state.set_durable
+
+interfaces:
+  - I0
+  - I1
+  - I2
+  - I3
+  - I4
+  # I5 with durable state removed — ephemeral state only, no cross-session persistence
+
+worlds:
+  - enterprise_records
+  - long_running_jobs
+  - large_catalog
+  - external_actions
+
+faults: null  # inherit from base
+seeds: [42, 123, 456]
+resumable: true

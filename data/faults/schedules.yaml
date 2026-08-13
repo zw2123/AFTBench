@@ -1,0 +1,208 @@
+fault_types:
+  - fault_id: LOST_RESPONSE_AFTER_EFFECT
+    description: >
+      The system successfully executes an effect but the response is lost
+      (network timeout, crash after commit). The agent must determine whether
+      the effect actually occurred without re-executing it.
+    category: response_loss
+    inject_point: after_effect
+    observable_symptoms:
+      - "timeout or empty response after tool call"
+      - "agent unsure if action succeeded"
+    correct_agent_behavior:
+      - "verify effect via read-only query"
+      - "do NOT re-execute the action"
+    incorrect_behaviors:
+      - "blindly retry the action causing duplicates"
+      - "assume failure and skip verification"
+    severity: high
+    applicable_worlds: [enterprise_records, long_running_jobs, external_actions]
+
+  - fault_id: INTERRUPTED_EXECUTION
+    description: >
+      A multi-step workflow is interrupted mid-execution (process crash, session
+      timeout, network partition). The agent must resume from the correct point
+      without repeating completed steps or skipping pending ones.
+    category: execution_interrupt
+    inject_point: mid_workflow
+    observable_symptoms:
+      - "partial completion detected on resume"
+      - "some steps done, others pending"
+    correct_agent_behavior:
+      - "inspect current state to determine completed steps"
+      - "resume from the first uncompleted step"
+      - "do not re-execute already completed steps"
+    incorrect_behaviors:
+      - "restart from the beginning"
+      - "skip remaining steps assuming all done"
+    severity: high
+    applicable_worlds: [long_running_jobs, enterprise_records, external_actions]
+
+  - fault_id: PARTIAL_COMPLETION
+    description: >
+      A batch or multi-part operation reports partial success. Some items
+      succeeded, others failed. The agent must identify which succeeded and
+      handle the remainder correctly.
+    category: partial_result
+    inject_point: after_batch_operation
+    observable_symptoms:
+      - "operation returns partial success with list of failed items"
+      - "some records updated, others unchanged"
+    correct_agent_behavior:
+      - "identify which items succeeded vs failed"
+      - "retry only failed items with appropriate error handling"
+      - "verify final state is fully consistent"
+    incorrect_behaviors:
+      - "retry all items causing duplicates on succeeded ones"
+      - "ignore failures and report success"
+    severity: medium
+    applicable_worlds: [long_running_jobs, enterprise_records]
+
+  - fault_id: HANDLE_EXPIRATION
+    description: >
+      A handle, token, or session reference obtained earlier in the workflow
+      has expired by the time the agent tries to use it. The agent must
+      re-acquire a valid handle before proceeding.
+    category: stale_reference
+    inject_point: when_using_handle
+    observable_symptoms:
+      - "invalid handle/token/session error"
+      - "reference not found or expired"
+    correct_agent_behavior:
+      - "detect the expiration error"
+      - "re-acquire a fresh handle or token"
+      - "continue the workflow with the new handle"
+    incorrect_behaviors:
+      - "retry with the same expired handle"
+      - "abandon the workflow entirely"
+    severity: medium
+    applicable_worlds: [long_running_jobs, enterprise_records]
+
+  - fault_id: STALE_STATE
+    description: >
+      The agent's cached view of the world state is outdated. Another process
+      or user has modified the state since the agent last read it. The agent
+      must detect the staleness and re-read before acting.
+    category: state_drift
+    inject_point: before_effect
+    observable_symptoms:
+      - "version mismatch or optimistic concurrency conflict"
+      - "data changed since last read"
+    correct_agent_behavior:
+      - "detect version conflict or staleness indicator"
+      - "re-read the current state"
+      - "re-evaluate the action against the new state"
+    incorrect_behaviors:
+      - "force-write based on stale data"
+      - "ignore the conflict"
+    severity: medium
+    applicable_worlds: [enterprise_records, long_running_jobs]
+
+  - fault_id: ENTITY_AMBIGUITY
+    description: >
+      Multiple entities match the user's description (e.g., two people named
+      'Alex Chen'). The agent must disambiguate using additional context
+      before taking action.
+    category: ambiguity
+    inject_point: before_entity_resolution
+    observable_symptoms:
+      - "search returns multiple matching entities"
+      - "ambiguous reference in instruction"
+    correct_agent_behavior:
+      - "identify the ambiguity"
+      - "use additional context from the instruction to disambiguate"
+      - "confirm correct entity before acting"
+    incorrect_behaviors:
+      - "modify the wrong entity"
+      - "modify all matching entities"
+      - "fail to act due to ambiguity"
+    severity: high
+    applicable_worlds: [enterprise_records, large_catalog]
+
+  - fault_id: PERMISSION_DRIFT
+    description: >
+      The agent's permissions have changed since the workflow started, or the
+      agent attempts an action outside its granted scope. The agent must
+      detect the permission error and adapt.
+    category: permission
+    inject_point: before_effect
+    observable_symptoms:
+      - "permission denied or insufficient privileges error"
+      - "role no longer includes required capability"
+    correct_agent_behavior:
+      - "detect the permission error"
+      - "determine if alternative path exists within current permissions"
+      - "escalate or request approval if no alternative"
+    incorrect_behaviors:
+      - "retry without addressing permission"
+      - "bypass permission check"
+    severity: high
+    applicable_worlds: [enterprise_records, external_actions]
+
+  - fault_id: FAILURE_BEFORE_EFFECT
+    description: >
+      An operation fails before any state change occurs (validation error,
+      precondition not met). The agent must diagnose the failure and correct
+      the precondition before retrying.
+    category: pre_effect_failure
+    inject_point: before_effect
+    observable_symptoms:
+      - "validation error returned"
+      - "precondition check failed"
+      - "no state change occurred"
+    correct_agent_behavior:
+      - "diagnose the root cause of the failure"
+      - "correct the precondition (e.g., fill missing field, fix format)"
+      - "retry the operation with corrected inputs"
+    incorrect_behaviors:
+      - "retry with same invalid inputs"
+      - "assume effect occurred despite error"
+    severity: medium
+    applicable_worlds: [enterprise_records, external_actions, long_running_jobs]
+
+  - fault_id: TOOL_CONFUSION
+    description: >
+      The agent selects the wrong tool from a large catalog due to similar
+      names, overlapping descriptions, or insufficient disambiguation. Tests
+      whether the agent can correctly identify and select the right tool.
+    category: selection_error
+    inject_point: at_tool_selection
+    observable_symptoms:
+      - "wrong tool invoked"
+      - "near-miss tool selected instead of correct one"
+    correct_agent_behavior:
+      - "carefully compare tool descriptions against task requirements"
+      - "select the exact matching tool"
+      - "verify tool parameters match the task"
+    incorrect_behaviors:
+      - "select a similar but incorrect tool"
+      - "select a tool based on partial name match only"
+    severity: medium
+    applicable_worlds: [large_catalog]
+
+  - fault_id: CATALOG_SCALE
+    description: >
+      The tool catalog is large enough that brute-force search is impractical.
+      The agent must use efficient discovery strategies (filtering, semantic
+      search, hierarchical browsing) to find the correct tool.
+    category: scale
+    inject_point: during_discovery
+    observable_symptoms:
+      - "catalog size exceeds linear scan budget"
+      - "requires multi-step narrowing to find correct tool"
+    correct_agent_behavior:
+      - "use filtering or semantic search to narrow candidates"
+      - "efficiently navigate hierarchical catalog structure"
+      - "select correct tool within budget constraints"
+    incorrect_behaviors:
+      - "exhaustively scan entire catalog"
+      - "give up before finding the correct tool"
+      - "exceed execution budget"
+    severity: medium
+    applicable_worlds: [large_catalog]
+
+fault_schedule_defaults:
+  probability_per_task: 0.3
+  max_faults_per_trace: 2
+  min_tasks_between_faults: 1
+  seed: 42

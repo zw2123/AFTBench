@@ -1,0 +1,33 @@
+profile: ablation_no_lifecycle
+seed: 42
+output_dir: artifacts/ablations/no_lifecycle
+base_config: configs/pilot.yaml
+
+description: >
+  Ablation: removes the lifecycle management primitives from I5.
+  Agents cannot cancel, resume, or check status of running jobs.
+  Tests whether lifecycle awareness is critical for long-running workflows.
+
+removed_primitives:
+  - job.cancel
+  - job.resume
+  - job.get_status
+  - job.verify_integrity
+
+interfaces:
+  - I0
+  - I1
+  - I2
+  - I3
+  - I4
+  # I5 with lifecycle removed — submit and read remain, no cancel/resume/status
+
+worlds:
+  - enterprise_records
+  - long_running_jobs
+  - large_catalog
+  - external_actions
+
+faults: null  # inherit from base
+seeds: [42, 123, 456]
+resumable: true

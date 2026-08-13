@@ -1,0 +1,135 @@
+policy_version: "1.0"
+policy_id: default
+
+resource_scopes:
+  crm:
+    - read
+    - write
+  ticketing:
+    - read
+    - write
+    - approve
+  calendar:
+    - read
+    - write
+  messaging:
+    - read
+    - write
+  cms:
+    - read
+    - write
+    - publish
+  jobs:
+    - read
+    - write
+    - cancel
+  compliance:
+    - read
+
+roles:
+  admin:
+    description: "Full access to all resources and operations"
+    grants:
+      - resource: "*"
+        actions: ["*"]
+  support_lead:
+    description: "Full CRM and ticketing access, read-only on other resources"
+    grants:
+      - resource: crm
+        actions: ["read", "write"]
+      - resource: ticketing
+        actions: ["read", "write", "approve"]
+      - resource: calendar
+        actions: ["read"]
+      - resource: messaging
+        actions: ["read"]
+  user:
+    description: "Read CRM data and send/read messages"
+    grants:
+      - resource: crm
+        actions: ["read"]
+      - resource: messaging
+        actions: ["read", "write"]
+      - resource: calendar
+        actions: ["read"]
+  editor:
+    description: "CMS draft and publish access"
+    grants:
+      - resource: cms
+        actions: ["read", "write", "publish"]
+      - resource: messaging
+        actions: ["read"]
+  job_operator:
+    description: "Job submission and monitoring"
+    grants:
+      - resource: jobs
+        actions: ["read", "write", "cancel"]
+
+approval_required:
+  - action: external_actions.publish
+    approver_role: admin
+    description: "Publishing external content requires admin approval"
+  - action: calendar.create_large
+    approver_role: support_lead
+    description: "Creating large calendar events (>20 attendees) requires approval"
+  - action: cms.publish
+    approver_role: admin
+    description: "Publishing CMS content requires admin approval"
+  - action: crm.delete_contact
+    approver_role: support_lead
+    description: "Deleting contacts requires support lead approval"
+  - action: jobs.cancel_running
+    approver_role: admin
+    description: "Cancelling actively running jobs requires admin approval"
+
+irreversible_restrictions:
+  - action: delete_account
+    description: "Account deletion is permanently irreversible"
+    allowed_roles: [admin]
+    requires_confirmation: true
+    cooldown_seconds: 3600
+  - action: purge_data
+    description: "Data purge is permanently irreversible"
+    allowed_roles: [admin]
+    requires_confirmation: true
+    cooldown_seconds: 86400
+  - action: drop_table
+    description: "Dropping database tables is permanently irreversible"
+    allowed_roles: []
+    description_note: "No role permitted — always blocked"
+
+capability_mapping:
+  crm.search_contacts: { resource: crm, action: read }
+  crm.get_contact: { resource: crm, action: read }
+  crm.update_contact: { resource: crm, action: write }
+  crm.delete_contact: { resource: crm, action: write }
+  crm.link_record: { resource: crm, action: write }
+  crm.approve_record: { resource: ticketing, action: approve }
+  crm.get_ticket: { resource: ticketing, action: read }
+  crm.get_account: { resource: crm, action: read }
+  calendar.create_event: { resource: calendar, action: write }
+  calendar.list_events: { resource: calendar, action: read }
+  calendar.get_event: { resource: calendar, action: read }
+  messaging.send_message: { resource: messaging, action: write }
+  messaging.edit_message: { resource: messaging, action: write }
+  messaging.get_message: { resource: messaging, action: read }
+  cms.create_draft: { resource: cms, action: write }
+  cms.preview_draft: { resource: cms, action: read }
+  cms.commit_draft: { resource: cms, action: write }
+  cms.submit_for_approval: { resource: cms, action: write }
+  cms.get_draft_status: { resource: cms, action: read }
+  job.submit_partition: { resource: jobs, action: write }
+  job.get_partition_status: { resource: jobs, action: read }
+  job.get_partition_result: { resource: jobs, action: read }
+  job.combine_results: { resource: jobs, action: write }
+  job.launch: { resource: jobs, action: write }
+  job.provide_input: { resource: jobs, action: write }
+  job.get_status: { resource: jobs, action: read }
+  job.get_output: { resource: jobs, action: read }
+  job.cancel: { resource: jobs, action: cancel }
+  job.verify_integrity: { resource: jobs, action: read }
+  job.resume: { resource: jobs, action: write }
+  tools.list_available: { resource: "*", action: read }
+  tools.invoke: { resource: "*", action: write }
+  inventory.get_count: { resource: crm, action: read }
+  compliance.generate_audit_trail: { resource: compliance, action: read }

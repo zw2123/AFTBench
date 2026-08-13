@@ -1,0 +1,9 @@
+profile: smoke
+seed: 42
+output_dir: artifacts/smoke
+worlds: [enterprise_records, long_running_jobs, large_catalog, external_actions]
+interfaces: [I0, I3, I5]
+faults: [none, lost_response_after_effect, interrupted_execution]
+max_tasks_per_world: 2
+seeds: [42]
+agent: scripted

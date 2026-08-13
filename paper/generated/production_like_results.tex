@@ -1,0 +1,45 @@
+% Production-Like Micro-Replication Results
+% Generated: 2026-08-04T12:48:00+08:00
+% Source: N/A
+% Agent: scripted-v1 (deterministic)
+
+\section{Production-Like Micro-Replication}
+
+\subsection{Status: NOT IMPLEMENTED}
+
+The production-like SQLite/PostgreSQL micro-replication was not implemented within the 4-hour mission timeframe.
+
+\subsection{Acceptable Fallback}
+
+Per the mission specification (Section 14), this is an acceptable fallback:
+\begin{itemize}
+    \item Canonical experiments and analysis pass
+    \item Production-like work is explicitly incomplete
+    \item No external-validity claim is made
+\end{itemize}
+
+\subsection{Planned Replication (Future Work)}
+
+\textbf{Replication 1:} Post-commit response loss with I0 vs I4 vs I5
+\textbf{Replication 2:} Stale-state update with I1 vs I3 vs I4 vs I5
+
+\textbf{Requirements:}
+\begin{itemize}
+    \item SQLite-backed CRM HTTP service
+    \item Persistent datastore with resettable state
+    \item Stable resource IDs and object versions
+    \item Authoritative commit log
+    \item Commit separated from response delivery
+    \item Deterministic fault hooks
+\end{itemize}
+
+\textbf{Scope:} 1 service, 1 database, 2--4 tasks, 2 fault scenarios, 3 interfaces, 3 repetitions
+
+\subsection{Limitation}
+
+Without production-like replication, we cannot validate that synthetic world semantics match real backend behavior. This limits external validity of the findings.
+
+% Source artifact: N/A (not implemented)
+% Generation timestamp: 2026-08-04T12:48:00+08:00
+% Agent type: scripted-v1 (deterministic)
+% Status: NOT_IMPLEMENTED

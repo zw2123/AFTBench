@@ -1,0 +1,7 @@
+experiment,fault_configured,request_accepted,backend_started,effect_committed,response_generated,response_dropped,recovery_eligible,recovery_attempted,recovery_succeeded
+primitive_ablations,512,768,768,236,768,118,512,0,326
+discovery_frontier,0,96,96,24,96,0,0,0,0
+postcommit_loss,168,168,168,123,168,123,168,0,63
+interruption_recovery,120,120,120,0,120,0,120,0,48
+stale_permission,240,240,240,42,240,0,0,0,0
+production_like,96,144,144,81,144,27,48,0,6

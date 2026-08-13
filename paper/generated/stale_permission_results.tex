@@ -1,0 +1,59 @@
+% Stale State and Permission Drift Results
+% Generated: 2026-08-04T12:47:00+08:00
+% Source: artifacts/evidence_runs/stale_permission/
+% Agent: scripted-v1 (deterministic)
+
+\section{Stale State and Permission Drift}
+
+\subsection{Question}
+Can effect-aware preconditions and authority revalidation prevent unsafe changes between planning and commit?
+
+\subsection{Conditions}
+I1, I3, I4, I5-full, I5-minus-side-effect-contract
+
+\subsection{Results}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Interface} & \textbf{Runs} & \textbf{Correct\%} & \textbf{Unauthorized\%} \\
+\hline
+I1 (Schema) & 48 & 0.0 & 0.0 \\
+I3 (Lifecycle) & 48 & 0.0 & 0.0 \\
+I4 (Effect) & 48 & 0.0 & 0.0 \\
+I5 (Full AFT) & 48 & 0.0 & 0.0 \\
+I5-minus-side-effect-contract & 48 & 0.0 & 0.0 \\
+\hline
+\end{tabular}
+\caption{Stale state and permission drift results. All conditions show 0\% correctness. No unauthorized effects observed.}
+\label{tab:stale_permission}
+\end{table}
+
+\subsection{Findings}
+\begin{itemize}
+    \item \textbf{All conditions show 0\% state-correct completion}
+    \item No unauthorized effects observed (safety predicates hold)
+    \item Tasks are failing postcondition checks, not safety checks
+    \item Stale-state and permission-drift faults may be causing systematic postcondition failure
+\end{itemize}
+
+\subsection{Interpretation}
+The 0\% correctness across all conditions suggests:
+\begin{enumerate}
+    \item Stale-state faults cause version conflicts that prevent commits
+    \item Permission-drift faults cause authority revocation before commit
+    \item The scripted agent cannot recover from these faults
+    \item No interface provides advantage for these failure modes with the current agent
+\end{enumerate}
+
+\subsection{Limitations}
+\begin{itemize}
+    \item Scripted agent lacks retry/refresh logic for stale-state scenarios
+    \item No interface can compensate for agent inability to re-plan
+    \item Results may differ with adaptive LLM agent
+\end{itemize}
+
+% Source artifact: artifacts/evidence_runs/stale_permission/
+% Generation timestamp: 2026-08-04T12:47:00+08:00
+% Agent type: scripted-v1 (deterministic)

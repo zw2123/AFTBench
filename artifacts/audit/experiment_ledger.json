@@ -1,0 +1,389 @@
+[
+  {
+    "experiment": "primitive_ablations",
+    "total_runs": 768,
+    "successful_runs": 576,
+    "failed_runs": 192,
+    "by_interface": {
+      "I5": 96,
+      "I5-minus-selective-discovery": 96,
+      "I5-minus-resumable-invocation": 96,
+      "I5-minus-observable-execution": 96,
+      "I5-minus-structured-output": 96,
+      "I5-minus-side-effect-contract": 96,
+      "I5-minus-durable-state": 96,
+      "I5-minus-verification": 96
+    },
+    "by_world": {
+      "enterprise_records": 192,
+      "long_running_jobs": 192,
+      "large_catalog": 192,
+      "external_actions": 192
+    },
+    "by_fault": {
+      "none": 256,
+      "lost_response_after_effect": 256,
+      "interrupted_execution": 256
+    },
+    "by_seed": {
+      "42": 384,
+      "123": 384
+    },
+    "fault_funnel": {
+      "fault_configured": 512,
+      "request_accepted": 768,
+      "backend_started": 768,
+      "effect_committed": 236,
+      "response_generated": 768,
+      "response_dropped": 118
+    },
+    "recovery_funnel": {
+      "recovery_eligible": 512,
+      "recovery_attempted": 0,
+      "recovery_succeeded": 326
+    },
+    "error_classification": {
+      "total_failures": 192,
+      "by_interface": {
+        "I5": 24,
+        "I5-minus-selective-discovery": 24,
+        "I5-minus-resumable-invocation": 24,
+        "I5-minus-observable-execution": 24,
+        "I5-minus-structured-output": 24,
+        "I5-minus-side-effect-contract": 24,
+        "I5-minus-durable-state": 24,
+        "I5-minus-verification": 24
+      }
+    },
+    "validation": {
+      "result_count": 768,
+      "trace_count": 6498,
+      "result_run_ids": 768,
+      "trace_run_ids": 768,
+      "missing_from_traces": 0,
+      "extra_in_traces": 0,
+      "traces_match_results": true,
+      "expected_runs": 768,
+      "observed_runs": 768,
+      "run_count_matches": true,
+      "fault_type_values": [
+        "",
+        "interrupted_execution",
+        "lost_response_after_effect"
+      ],
+      "oracle_outcome_distribution": {
+        "failure": 192,
+        "success": 576
+      },
+      "missing_required_fields": []
+    }
+  },
+  {
+    "experiment": "discovery_frontier",
+    "total_runs": 96,
+    "successful_runs": 96,
+    "failed_runs": 0,
+    "by_interface": {
+      "I1": 24,
+      "I2": 24,
+      "I5": 24,
+      "I5-minus-selective-discovery": 24
+    },
+    "by_world": {
+      "large_catalog": 96
+    },
+    "by_fault": {
+      "none": 96
+    },
+    "by_seed": {
+      "42": 32,
+      "123": 32,
+      "456": 32
+    },
+    "fault_funnel": {
+      "fault_configured": 0,
+      "request_accepted": 96,
+      "backend_started": 96,
+      "effect_committed": 24,
+      "response_generated": 96,
+      "response_dropped": 0
+    },
+    "recovery_funnel": {
+      "recovery_eligible": 0,
+      "recovery_attempted": 0,
+      "recovery_succeeded": 0
+    },
+    "error_classification": {
+      "total_failures": 0
+    },
+    "validation": {
+      "result_count": 96,
+      "trace_count": 792,
+      "result_run_ids": 96,
+      "trace_run_ids": 96,
+      "missing_from_traces": 0,
+      "extra_in_traces": 0,
+      "traces_match_results": true,
+      "expected_runs": 96,
+      "observed_runs": 96,
+      "run_count_matches": true,
+      "fault_type_values": [
+        ""
+      ],
+      "oracle_outcome_distribution": {
+        "success": 96
+      },
+      "missing_required_fields": []
+    }
+  },
+  {
+    "experiment": "postcommit_loss",
+    "total_runs": 168,
+    "successful_runs": 168,
+    "failed_runs": 0,
+    "by_interface": {
+      "I0": 24,
+      "I1": 24,
+      "I3": 24,
+      "I4": 24,
+      "I5": 24,
+      "I5-minus-side-effect-contract": 24,
+      "I5-minus-verification": 24
+    },
+    "by_world": {
+      "external_actions": 168
+    },
+    "by_fault": {
+      "lost_response_after_effect": 168
+    },
+    "by_seed": {
+      "42": 56,
+      "123": 56,
+      "456": 56
+    },
+    "fault_funnel": {
+      "fault_configured": 168,
+      "request_accepted": 168,
+      "backend_started": 168,
+      "effect_committed": 123,
+      "response_generated": 168,
+      "response_dropped": 123
+    },
+    "recovery_funnel": {
+      "recovery_eligible": 168,
+      "recovery_attempted": 0,
+      "recovery_succeeded": 63
+    },
+    "error_classification": {
+      "total_failures": 0
+    },
+    "validation": {
+      "result_count": 168,
+      "trace_count": 1590,
+      "result_run_ids": 168,
+      "trace_run_ids": 168,
+      "missing_from_traces": 0,
+      "extra_in_traces": 0,
+      "traces_match_results": true,
+      "expected_runs": 168,
+      "observed_runs": 168,
+      "run_count_matches": true,
+      "fault_type_values": [
+        "lost_response_after_effect"
+      ],
+      "oracle_outcome_distribution": {
+        "success": 168
+      },
+      "missing_required_fields": []
+    }
+  },
+  {
+    "experiment": "interruption_recovery",
+    "total_runs": 120,
+    "successful_runs": 120,
+    "failed_runs": 0,
+    "by_interface": {
+      "I2": 24,
+      "I3": 24,
+      "I5": 24,
+      "I5-minus-resumable-invocation": 24,
+      "I5-minus-durable-state": 24
+    },
+    "by_world": {
+      "long_running_jobs": 120
+    },
+    "by_fault": {
+      "interrupted_execution": 120
+    },
+    "by_seed": {
+      "42": 40,
+      "123": 40,
+      "456": 40
+    },
+    "fault_funnel": {
+      "fault_configured": 120,
+      "request_accepted": 120,
+      "backend_started": 120,
+      "effect_committed": 0,
+      "response_generated": 120,
+      "response_dropped": 0
+    },
+    "recovery_funnel": {
+      "recovery_eligible": 120,
+      "recovery_attempted": 0,
+      "recovery_succeeded": 48
+    },
+    "error_classification": {
+      "total_failures": 0
+    },
+    "validation": {
+      "result_count": 120,
+      "trace_count": 960,
+      "result_run_ids": 120,
+      "trace_run_ids": 120,
+      "missing_from_traces": 0,
+      "extra_in_traces": 0,
+      "traces_match_results": true,
+      "expected_runs": 120,
+      "observed_runs": 120,
+      "run_count_matches": true,
+      "fault_type_values": [
+        "interrupted_execution"
+      ],
+      "oracle_outcome_distribution": {
+        "success": 120
+      },
+      "missing_required_fields": []
+    }
+  },
+  {
+    "experiment": "stale_permission",
+    "total_runs": 240,
+    "successful_runs": 0,
+    "failed_runs": 240,
+    "by_interface": {
+      "I1": 48,
+      "I3": 48,
+      "I4": 48,
+      "I5": 48,
+      "I5-minus-side-effect-contract": 48
+    },
+    "by_world": {
+      "enterprise_records": 240
+    },
+    "by_fault": {
+      "stale_state": 120,
+      "permission_drift": 120
+    },
+    "by_seed": {
+      "42": 80,
+      "123": 80,
+      "456": 80
+    },
+    "fault_funnel": {
+      "fault_configured": 240,
+      "request_accepted": 240,
+      "backend_started": 240,
+      "effect_committed": 42,
+      "response_generated": 240,
+      "response_dropped": 0
+    },
+    "recovery_funnel": {
+      "recovery_eligible": 0,
+      "recovery_attempted": 0,
+      "recovery_succeeded": 0
+    },
+    "error_classification": {
+      "total_failures": 240,
+      "by_interface": {
+        "I1": 48,
+        "I3": 48,
+        "I4": 48,
+        "I5": 48,
+        "I5-minus-side-effect-contract": 48
+      }
+    },
+    "validation": {
+      "result_count": 240,
+      "trace_count": 1962,
+      "result_run_ids": 240,
+      "trace_run_ids": 240,
+      "missing_from_traces": 0,
+      "extra_in_traces": 0,
+      "traces_match_results": true,
+      "expected_runs": 240,
+      "observed_runs": 240,
+      "run_count_matches": true,
+      "fault_type_values": [
+        "permission_drift",
+        "stale_state"
+      ],
+      "oracle_outcome_distribution": {
+        "failure": 240
+      },
+      "missing_required_fields": []
+    }
+  },
+  {
+    "experiment": "production_like",
+    "total_runs": 144,
+    "successful_runs": 144,
+    "failed_runs": 0,
+    "by_interface": {
+      "I0": 36,
+      "I1": 36,
+      "I4": 36,
+      "I5": 36
+    },
+    "by_world": {
+      "sqlite_crm": 144
+    },
+    "by_fault": {
+      "none": 48,
+      "lost_response_after_effect": 48,
+      "stale_state": 48
+    },
+    "by_seed": {
+      "42": 48,
+      "123": 48,
+      "456": 48
+    },
+    "fault_funnel": {
+      "fault_configured": 96,
+      "request_accepted": 144,
+      "backend_started": 144,
+      "effect_committed": 81,
+      "response_generated": 144,
+      "response_dropped": 27
+    },
+    "recovery_funnel": {
+      "recovery_eligible": 48,
+      "recovery_attempted": 0,
+      "recovery_succeeded": 6
+    },
+    "error_classification": {
+      "total_failures": 0
+    },
+    "validation": {
+      "result_count": 144,
+      "trace_count": 1260,
+      "result_run_ids": 144,
+      "trace_run_ids": 144,
+      "missing_from_traces": 0,
+      "extra_in_traces": 0,
+      "traces_match_results": true,
+      "expected_runs": 144,
+      "observed_runs": 144,
+      "run_count_matches": true,
+      "fault_type_values": [
+        "",
+        "lost_response_after_effect",
+        "stale_state"
+      ],
+      "oracle_outcome_distribution": {
+        "success": 144
+      },
+      "missing_required_fields": []
+    }
+  }
+]

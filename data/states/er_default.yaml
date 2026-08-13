@@ -1,0 +1,105 @@
+state_id: er_default
+world: enterprise_records
+version: 1
+description: "Default enterprise records state with contacts, accounts, and tickets"
+
+accounts:
+  - account_id: acme
+    name: "Acme Corporation"
+    industry: technology
+    plan: enterprise
+    contacts:
+      - alex_chen_acme
+      - maria_santos
+  - account_id: globex
+    name: "Globex Industries"
+    industry: manufacturing
+    plan: professional
+    contacts:
+      - alex_chen_globex
+      - priya_patel
+  - account_id: initech
+    name: "Initech Solutions"
+    industry: finance
+    plan: starter
+    contacts:
+      - james_wilson
+
+contacts:
+  - contact_id: alex_chen_acme
+    first_name: Alex
+    last_name: Chen
+    email: alex.chen@acme.com
+    phone: "+1-555-0100"
+    title: "Senior Engineer"
+    account: acme
+    version: 3
+    last_modified: "2025-08-01T10:00:00Z"
+
+  - contact_id: alex_chen_globex
+    first_name: Alex
+    last_name: Chen
+    email: alex.chen@globex.com
+    phone: "+1-555-0100"
+    title: "Product Manager"
+    account: globex
+    version: 1
+    last_modified: "2025-07-15T14:30:00Z"
+
+  - contact_id: maria_santos
+    first_name: Maria
+    last_name: Santos
+    email: maria.santos@acme.com
+    phone: "+1-555-0201"
+    title: "Account Executive"
+    account: acme
+    version: 5
+    last_modified: "2025-08-02T09:15:00Z"
+
+  - contact_id: priya_patel
+    first_name: Priya
+    last_name: Patel
+    email: priya.patel@globex.com
+    phone: "+1-555-0302"
+    title: "Engineering Lead"
+    account: globex
+    version: 2
+    last_modified: "2025-07-20T11:45:00Z"
+
+  - contact_id: james_wilson
+    first_name: James
+    last_name: Wilson
+    email: james.wilson@initech.com
+    phone: "+1-555-0403"
+    title: "CTO"
+    account: initech
+    version: 1
+    last_modified: "2025-06-10T08:00:00Z"
+
+tickets:
+  - ticket_id: TK-4421
+    subject: "API integration failing on webhook endpoint"
+    status: open
+    priority: high
+    account: null
+    assigned_to: null
+    created: "2025-08-01T16:00:00Z"
+    version: 1
+
+  - ticket_id: TK-4422
+    subject: "Billing discrepancy on Q2 invoice"
+    status: in_progress
+    priority: medium
+    account: acme
+    assigned_to: maria_santos
+    created: "2025-07-28T10:30:00Z"
+    version: 2
+
+  - ticket_id: TK-4423
+    subject: "Request for custom report export"
+    status: open
+    priority: low
+    account: globex
+    assigned_to: null
+    created: "2025-08-02T13:00:00Z"
+    version: 1

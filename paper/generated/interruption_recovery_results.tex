@@ -1,0 +1,46 @@
+% Interruption Recovery Results
+% Generated: 2026-08-04T12:47:00+08:00
+% Source: artifacts/evidence_runs/interruption_recovery/
+% Agent: scripted-v1 (deterministic)
+
+\section{Interrupted Long-Running Execution}
+
+\subsection{Question}
+When do resumable invocation and durable execution state preserve work?
+
+\subsection{Conditions}
+I2, I3, I5-full, I5-minus-resumable-invocation, I5-minus-durable-state
+
+\subsection{Results}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Interface} & \textbf{Runs} & \textbf{Correct\%} & \textbf{Recovery\%} \\
+\hline
+I2 (Discovery) & 24 & 100.0 & 0.0 \\
+I3 (Lifecycle) & 24 & 100.0 & 0.0 \\
+I5 (Full AFT) & 24 & 100.0 & 0.0 \\
+I5-minus-resumable-invocation & 24 & 100.0 & 0.0 \\
+I5-minus-durable-state & 24 & 100.0 & 0.0 \\
+\hline
+\end{tabular}
+\caption{Interruption recovery results. All conditions achieve 100\% correctness. No recovery events observed.}
+\label{tab:interruption_recovery}
+\end{table}
+
+\subsection{Findings}
+\begin{itemize}
+    \item All conditions achieve 100\% state-correct completion
+    \item No recovery events triggered in any condition
+    \item interrupted\_execution fault may not be exercising intended failure mode
+    \item Scripted agent may not encounter interruption scenarios
+\end{itemize}
+
+\subsection{Investigation Needed}
+Uniform 100\% correctness suggests interrupted\_execution fault may not be triggering correctly in long\_running\_jobs world.
+
+% Source artifact: artifacts/evidence_runs/interruption_recovery/
+% Generation timestamp: 2026-08-04T12:47:00+08:00
+% Agent type: scripted-v1 (deterministic)

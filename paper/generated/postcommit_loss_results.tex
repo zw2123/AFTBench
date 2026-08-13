@@ -1,0 +1,48 @@
+% Post-Commit Response Loss Results
+% Generated: 2026-08-04T12:47:00+08:00
+% Source: artifacts/evidence_runs/postcommit_loss/
+% Agent: scripted-v1 (deterministic)
+
+\section{Post-Commit Response Loss}
+
+\subsection{Question}
+Which mechanisms prevent duplicate, unresolved, or incorrectly reported effects after commit when the response is lost?
+
+\subsection{Conditions}
+I0, I1, I3, I4, I5-full, I5-minus-side-effect-contract, I5-minus-verification
+
+\subsection{Results}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Interface} & \textbf{Runs} & \textbf{Correct\%} & \textbf{Recovery\%} \\
+\hline
+I0 (Legacy) & 24 & 100.0 & 0.0 \\
+I1 (Schema) & 24 & 100.0 & 0.0 \\
+I3 (Lifecycle) & 24 & 100.0 & 0.0 \\
+I4 (Effect) & 24 & 100.0 & 0.0 \\
+I5 (Full AFT) & 24 & 100.0 & 0.0 \\
+I5-minus-side-effect-contract & 24 & 100.0 & 0.0 \\
+I5-minus-verification & 24 & 100.0 & 0.0 \\
+\hline
+\end{tabular}
+\caption{Post-commit response loss results. All conditions achieve 100\% correctness. No recovery events observed.}
+\label{tab:postcommit_loss}
+\end{table}
+
+\subsection{Findings}
+\begin{itemize}
+    \item All conditions achieve 100\% state-correct completion
+    \item No duplicate effects observed in any condition
+    \item No recovery events triggered
+    \item Lost-response fault may not be triggering correctly in external\_actions world
+\end{itemize}
+
+\subsection{Investigation Needed}
+The uniform 100\% correctness across all conditions suggests the lost\_response\_after\_effect fault may not be exercising the intended failure mode in external\_actions world. Trace inspection required.
+
+% Source artifact: artifacts/evidence_runs/postcommit_loss/
+% Generation timestamp: 2026-08-04T12:47:00+08:00
+% Agent type: scripted-v1 (deterministic)

@@ -1,0 +1,55 @@
+% Interface Ladder Results
+% Generated: 2026-08-04T12:48:00+08:00
+% Source: artifacts/evidence_runs/*/analysis/explicit_contrasts.csv
+% Agent: scripted-v1 (deterministic)
+
+\section{Interface Ladder Results}
+
+\subsection{Interface-Ladder Contrasts}
+
+Paired comparisons between adjacent interface conditions:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccccc}
+\hline
+\textbf{Contrast} & \textbf{Pairs} & \textbf{Treatment} & \textbf{Control} & \textbf{$\Delta$} & \textbf{Wins/Ties/Losses} \\
+\hline
+\multicolumn{6}{c}{\textit{Data from explicit\_contrasts.csv}} \\
+\end{tabular}
+\caption{Interface ladder paired comparisons. $\Delta$ = mean difference in state\_correct\_completion.}
+\label{tab:interface_ladder}
+\end{table}
+
+\subsection{Key Observations}
+
+\begin{enumerate}
+    \item \textbf{Discovery frontier:} All conditions 100\% correct. I2/I5 reduce context tokens 92\%.
+    \item \textbf{Post-commit loss:} All conditions 100\% correct. No differential behavior.
+    \item \textbf{Interruption recovery:} All conditions 100\% correct. No recovery events.
+    \item \textbf{Stale permission:} All conditions 0\% correct. Agent cannot recover.
+    \item \textbf{Ablations:} All I5-minus-X variants identical to I5-full (null result).
+\end{enumerate}
+
+\subsection{Overall Pattern}
+
+The results show a \textbf{bimodal distribution}:
+\begin{itemize}
+    \item Simple tasks (discovery, post-commit, interruption): 100\% correct across all interfaces
+    \item Complex tasks (stale/permission): 0\% correct across all interfaces
+\end{itemize}
+
+No interface condition shows advantage over another within either mode.
+
+\subsection{Interpretation}
+
+The scripted agent's fixed policy determines outcomes more than interface primitives:
+\begin{itemize}
+    \item For simple tasks: agent always succeeds regardless of interface
+    \item For complex tasks: agent always fails regardless of interface
+    \item Interface primitives may benefit adaptive agents (LLMs) that can exploit them
+\end{itemize}
+
+% Source artifact: artifacts/evidence_runs/*/analysis/
+% Generation timestamp: 2026-08-04T12:48:00+08:00
+% Agent type: scripted-v1 (deterministic)

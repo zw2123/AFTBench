@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+*.manifest
+*.spec
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# AFTBench artifacts
+# Ignore generated run artifacts …
+artifacts/smoke/
+artifacts/pilot/
+artifacts/full/
+artifacts/ablations/
+artifacts/tmp/
+artifacts/cache/
+artifacts/codex_run_5h/
+artifacts/evidence_run_5h/
+artifacts/evidence_runs/
+artifacts/finalization_4h/
+artifacts/llm_pilot/
+artifacts/qwen_4h/
+# … but DO track the codex_run directory for reproducible reference runs.
+!artifacts/codex_run/
+!artifacts/codex_run/.gitkeep
+
+# SQLite database (generated)
+sqlite_crm.db
+
+# Misc
+*.log
+*.tmp
+docs.zip

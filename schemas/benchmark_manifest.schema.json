@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aftbench.dev/schemas/benchmark_manifest.schema.json",
+  "title": "AFTBench Benchmark Run Manifest",
+  "description": "Schema for the top-level manifest describing a complete benchmark run.",
+  "type": "object",
+  "required": [
+    "manifest_id",
+    "profile",
+    "created_at",
+    "config",
+    "worlds",
+    "interfaces",
+    "fault_types",
+    "seeds",
+    "total_tasks",
+    "total_traces",
+    "status"
+  ],
+  "properties": {
+    "manifest_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "profile": {
+      "type": "string",
+      "enum": ["smoke", "pilot", "full", "ablation"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "config_path": { "type": "string" },
+        "output_dir": { "type": "string" },
+        "agent": { "type": ["string", "null"] }
+      },
+      "required": ["config_path", "output_dir"]
+    },
+    "worlds": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "interfaces": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["I0", "I1", "I2", "I3", "I4", "I5"]
+      },
+      "minItems": 1
+    },
+    "fault_types": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "seeds": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "minItems": 1
+    },
+    "total_tasks": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "total_traces": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "completed_traces": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failed_traces": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "running", "completed", "failed", "partial"]
+    },
+    "results_file": {
+      "type": "string",
+      "description": "Path to the results CSV file"
+    },
+    "traces_dir": {
+      "type": "string",
+      "description": "Path to the directory containing trace files"
+    },
+    "report_files": {
+      "type": "object",
+      "properties": {
+        "html": { "type": "string" },
+        "csv": { "type": "string" },
+        "json": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "overall_success_rate": { "type": "number" },
+        "per_world_success": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "per_interface_success": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "per_fault_success": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
