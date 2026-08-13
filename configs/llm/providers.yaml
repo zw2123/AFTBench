@@ -1,0 +1,36 @@
+# AFTBench LLM provider profiles.
+#
+# This file is TRACKED in git.  It contains NO secrets — only endpoint and
+# pricing metadata.  API keys are read from the repo-root .env file
+# (gitignored), referenced by the `api_key_env` variable name below.
+#
+# Add or edit profiles here; put the corresponding secret in .env, e.g.:
+#   AFTBENCH_API_KEY_QWEN=sk-...
+#
+# `model_id` is the `name` key; the provider layer sends it as the model
+# field of the chat-completions request.
+
+providers:
+  qwen-3.7-plus:
+    api_base: https://dashscope.aliyuncs.com/compatible-mode/v1
+    api_key_env: AFTBENCH_API_KEY_QWEN
+    input_price_per_1k: 0.0008
+    output_price_per_1k: 0.0024
+    max_tokens: 4096
+    timeout: 120
+
+  deepseek-v4-pro:
+    api_base: https://api.deepseek.com/v1
+    api_key_env: AFTBENCH_API_KEY_DEEPSEEK
+    input_price_per_1k: 0.0014
+    output_price_per_1k: 0.0028
+    max_tokens: 4096
+    timeout: 120
+
+  gpt-5.6-sol:
+    api_base: https://api.openai.com/v1
+    api_key_env: AFTBENCH_API_KEY_SOL
+    input_price_per_1k: 0.0025
+    output_price_per_1k: 0.0100
+    max_tokens: 8192
+    timeout: 180

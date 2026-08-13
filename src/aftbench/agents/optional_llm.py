@@ -1,15 +1,25 @@
-"""Optional LLM-backed agent with explicit cost/call limits and full logging."""
+"""LLM-backed agent using the provider registry (multi-provider, logged).
+
+Supports any provider profile defined in configs/llm/providers.yaml, with
+per-provider pricing and cost/call limits.  All API calls are logged with
+model_id, raw messages, and tool calls; no hidden chain-of-thought is used.
+
+The agent is disabled by default: it activates only when (a) `agent: llm`
+is set in the benchmark config and (b) the profile's API key is present in
+the environment / .env.
+"""
 
 from __future__ import annotations
 
 import json
 import logging
-import os
 import time
 from dataclasses import dataclass, field
 from typing import Any
 
 from .base import Agent
+from ..llm.base import LLMProvider
+from ..llm.registry import get_provider, load_profiles
 
 logger = logging.getLogger(__name__)
 
@@ -25,26 +35,27 @@ class LLMCallRecord:
     input_tokens: int
     output_tokens: int
     cost_usd: float
+    error: str | None = None
 
 
 @dataclass
 class LLMAgentConfig:
-    """Configuration for the LLM agent."""
-    model_id: str = "gpt-4o"
-    api_base: str = "https://api.openai.com/v1"
+    """Configuration for the LLM agent.
+
+    ``model_id`` is the provider-profile name from providers.yaml
+    (e.g. "qwen-3.7-plus").  ``provider`` may override the provider
+    instance (used by tests); when None it is resolved from the registry.
+    """
+    model_id: str = "qwen-3.7-plus"
     cost_limit_usd: float = 5.0
     call_limit: int = 200
     temperature: float = 0.0
     max_tokens: int = 4096
+    provider: LLMProvider | None = None
 
 
 class LLMAgent(Agent):
-    """LLM-backed agent that is disabled by default.
-
-    Requires AFTBENCH_LLM_API_KEY environment variable.  All calls are logged
-    with exact model_id, raw messages, and tool calls.  No hidden chain of
-    thought is used — all reasoning is in the logged messages.
-    """
+    """LLM-backed agent (disabled by default; requires an API key)."""
 
     def __init__(
         self,
@@ -56,7 +67,9 @@ class LLMAgent(Agent):
         self._call_log: list[LLMCallRecord] = []
         self._total_cost: float = 0.0
         self._total_calls: int = 0
-        self._api_key: str | None = os.environ.get("AFTBENCH_LLM_API_KEY")
+        self._provider: LLMProvider | None = self._config.provider
+        if self._provider is None:
+            self._provider = get_provider(self._config.model_id)
 
     @classmethod
     def create_if_enabled(
@@ -64,16 +77,19 @@ class LLMAgent(Agent):
         config: LLMAgentConfig | None = None,
         agent_id: str = "llm-v1",
     ) -> "LLMAgent | None":
-        """Factory that returns None when the API key is not set."""
-        api_key = os.environ.get("AFTBENCH_LLM_API_KEY")
-        if not api_key:
-            logger.info("LLMAgent disabled: AFTBENCH_LLM_API_KEY not set")
+        """Factory returning None when the provider is not available."""
+        cfg = config or LLMAgentConfig()
+        if cfg.provider is not None:
+            return cls(config=cfg, agent_id=agent_id)
+        provider = get_provider(cfg.model_id)
+        if provider is None:
+            logger.info("LLMAgent disabled: profile %s has no key", cfg.model_id)
             return None
-        return cls(config=config, agent_id=agent_id)
+        return cls(config=cfg, agent_id=agent_id)
 
     @property
     def is_enabled(self) -> bool:
-        return self._api_key is not None
+        return self._provider is not None
 
     @property
     def call_log(self) -> list[LLMCallRecord]:
@@ -89,18 +105,10 @@ class LLMAgent(Agent):
 
     def _check_limits(self) -> bool:
         if self._total_cost >= self._config.cost_limit_usd:
-            logger.warning(
-                "LLMAgent cost limit reached: $%.4f >= $%.4f",
-                self._total_cost,
-                self._config.cost_limit_usd,
-            )
+            logger.warning("LLMAgent cost limit reached: $%.4f", self._total_cost)
             return False
         if self._total_calls >= self._config.call_limit:
-            logger.warning(
-                "LLMAgent call limit reached: %d >= %d",
-                self._total_calls,
-                self._config.call_limit,
-            )
+            logger.warning("LLMAgent call limit reached: %d", self._total_calls)
             return False
         return True
 
@@ -109,75 +117,36 @@ class LLMAgent(Agent):
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-        """Call the LLM API and return the response dict.
-
-        Uses a simple HTTP request to avoid hard dependency on openai SDK.
-        """
-        if not self._api_key:
-            raise RuntimeError("AFTBENCH_LLM_API_KEY not set")
+        """Call the provider and log the record."""
+        if self._provider is None:
+            return {"content": None, "tool_calls": [], "error": "provider_disabled"}
         if not self._check_limits():
-            return {
-                "content": None,
-                "tool_calls": [],
-                "error": "limit_exceeded",
-            }
+            return {"content": None, "tool_calls": [], "error": "limit_exceeded"}
 
-        import urllib.request
-        import urllib.error
-
-        body: dict[str, Any] = {
-            "model": self._config.model_id,
-            "messages": messages,
-            "temperature": self._config.temperature,
-            "max_tokens": self._config.max_tokens,
-        }
-        if tools:
-            body["tools"] = tools
-
-        data = json.dumps(body).encode("utf-8")
-        req = urllib.request.Request(
-            f"{self._config.api_base}/chat/completions",
-            data=data,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self._api_key}",
-            },
+        resp = self._provider.chat(
+            messages,
+            tools=tools,
+            temperature=self._config.temperature,
+            max_tokens=self._config.max_tokens,
         )
-
-        try:
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
-        except urllib.error.URLError as exc:
-            logger.error("LLM API call failed: %s", exc)
-            return {"content": None, "tool_calls": [], "error": str(exc)}
-
-        choice = result.get("choices", [{}])[0]
-        message = choice.get("message", {})
-        usage = result.get("usage", {})
-
-        # Rough cost estimate (USD per 1K tokens — approximate)
-        input_tokens = usage.get("prompt_tokens", 0)
-        output_tokens = usage.get("completion_tokens", 0)
-        cost = (input_tokens * 0.005 + output_tokens * 0.015) / 1000.0
-
-        record = LLMCallRecord(
+        self._call_log.append(LLMCallRecord(
             timestamp=time.time(),
             model_id=self._config.model_id,
             prompt_messages=messages,
-            response_text=message.get("content"),
-            tool_calls=message.get("tool_calls", []),
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            cost_usd=cost,
-        )
-        self._call_log.append(record)
-        self._total_cost += cost
+            response_text=resp.content,
+            tool_calls=resp.tool_calls,
+            input_tokens=resp.input_tokens,
+            output_tokens=resp.output_tokens,
+            cost_usd=resp.cost_usd,
+            error=resp.error,
+        ))
+        self._total_cost += resp.cost_usd
         self._total_calls += 1
 
         return {
-            "content": message.get("content"),
-            "tool_calls": message.get("tool_calls", []),
-            "error": None,
+            "content": resp.content,
+            "tool_calls": resp.tool_calls,
+            "error": resp.error,
         }
 
     # ------------------------------------------------------------------
@@ -215,16 +184,12 @@ class LLMAgent(Agent):
             return None
 
         content = (response.get("content") or "").strip()
-        # Try to extract capability_id from response
         for cap in discovery_results:
             cap_id = cap.get("capability_id", "")
             if cap_id and cap_id in content:
                 return cap_id
-
-        # If the response looks like a bare id, return it
         if content and " " not in content:
             return content
-
         return None
 
     def build_params(
@@ -298,22 +263,20 @@ class LLMAgent(Agent):
             return "abort"
 
         content = (response_data.get("content") or "").strip().lower()
-        valid_actions = {"done", "retry", "resume", "reconcile", "abort"}
-        if content in valid_actions:
-            return content
-
-        # Try to extract from longer text
-        for action in valid_actions:
-            if action in content:
-                return action
-
-        return "abort"
+        return _pick_action(content)
 
     def handle_error(
         self,
         error: dict[str, Any],
         task: dict[str, Any],
     ) -> str:
+        """Return a runner-compatible action: retry | refresh_and_retry | abort.
+
+        ``refresh_and_retry`` is returned when the interface exposes a
+        structured error (typed error_code / current_version) — the adaptive
+        agent is expected to refresh the stale version and retry, which is
+        exactly the effect-contract mechanism H4b targets.
+        """
         if not self.is_enabled:
             return "abort"
 
@@ -323,7 +286,9 @@ class LLMAgent(Agent):
                 "content": (
                     "You are an error-handling agent. Given a task and an error "
                     "from a tool invocation, decide the next action. "
-                    "Respond with exactly one of: done, retry, resume, reconcile, abort."
+                    "Respond with exactly one of: done, retry, refresh_and_retry, abort. "
+                    "Choose refresh_and_retry when the error exposes a current_version "
+                    "or error_code that can be used to re-read and retry on fresh state."
                 ),
             },
             {
@@ -340,15 +305,20 @@ class LLMAgent(Agent):
             return "abort"
 
         content = (response_data.get("content") or "").strip().lower()
-        valid_actions = {"done", "retry", "resume", "reconcile", "abort"}
-        if content in valid_actions:
-            return content
-
-        for action in valid_actions:
-            if action in content:
-                return action
-
-        return "abort"
+        return _pick_action(content)
 
     def agent_id(self) -> str:
         return self._id
+
+
+def _pick_action(content: str) -> str:
+    """Map a free-form LLM reply to a runner-compatible action token."""
+    valid = {"done", "retry", "resume", "reconcile", "abort", "refresh_and_retry"}
+    for action in valid:
+        if content == action or content.startswith(action):
+            if action in ("done", "resume", "reconcile"):
+                # Runner only branches on retry / refresh_and_retry; treat
+                # other terminal actions as no-retry (abort-like).
+                return "abort"
+            return action
+    return "abort"

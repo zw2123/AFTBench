@@ -1,0 +1,43 @@
+# LLM ecological validation — pilot (single provider, small budget).
+#
+# Copy to configs/llm/pilot_qwen.yaml (or run with --config directly) and
+# set the API key in .env:  AFTBENCH_API_KEY_QWEN=sk-...
+#
+# This pilot validates the LLM adapter end-to-end on ONE mechanism before
+# scaling to the full three-model matrix.  It mirrors the deterministic
+# H5 verification workload (I5 vs I5-minus-verification) so the adaptive
+# agent's behavior can be compared against the deterministic mechanism.
+
+profile: llm_pilot
+seed: 42
+output_dir: artifacts/llm_pilot/qwen_h5
+worlds:
+  - external_actions
+
+interfaces:
+  - I5
+  - I5-minus-verification
+
+faults:
+  - false_success
+
+task_ids:
+  - ea_09_partial_success_invite
+
+seeds: [42]
+
+agent: llm
+llm_model: qwen-3.7-plus
+llm_cost_limit_usd: 1.0
+llm_call_limit: 60
+llm_temperature: 0.0
+llm_max_tokens: 2048
+
+analysis:
+  compute_confidence_intervals: true
+  confidence_level: 0.95
+  bootstrap_samples: 1000
+
+report:
+  format: [csv, json]
+  include_trace_examples: true

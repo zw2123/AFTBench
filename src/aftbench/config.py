@@ -29,6 +29,13 @@ class BenchmarkConfig:
     call_limit: int = 0
     max_turns: int = 20
     ablation: str | None = None
+    # LLM agent (agent: llm) — model_id is a provider profile name from
+    # configs/llm/providers.yaml; API keys come from .env (gitignored).
+    llm_model: str = "qwen-3.7-plus"
+    llm_cost_limit_usd: float = 5.0
+    llm_call_limit: int = 200
+    llm_temperature: float = 0.0
+    llm_max_tokens: int = 4096
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> BenchmarkConfig:

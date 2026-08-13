@@ -832,11 +832,11 @@ class BenchmarkRunner:
         if self.config.agent == "llm":
             from .agents.optional_llm import LLMAgent, LLMAgentConfig
             llm_config = LLMAgentConfig(
-                model_id=getattr(self.config, 'llm_model', 'qwen3.7-plus'),
-                api_base=getattr(self.config, 'llm_api_base', 'https://dashscope.aliyuncs.com/compatible-mode/v1'),
-                cost_limit_usd=getattr(self.config, 'llm_cost_limit_usd', 2.0),
-                call_limit=getattr(self.config, 'llm_call_limit', 100),
+                model_id=getattr(self.config, 'llm_model', 'qwen-3.7-plus'),
+                cost_limit_usd=getattr(self.config, 'llm_cost_limit_usd', 5.0),
+                call_limit=getattr(self.config, 'llm_call_limit', 200),
                 temperature=getattr(self.config, 'llm_temperature', 0.0),
+                max_tokens=getattr(self.config, 'llm_max_tokens', 4096),
             )
             llm_agent = LLMAgent.create_if_enabled(config=llm_config, agent_id="llm-v1")
             if llm_agent is not None:
