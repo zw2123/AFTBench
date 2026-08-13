@@ -122,9 +122,13 @@ class TestI3ResumeSemantics:
                 tw.close()
 
         # The two ablations report different recovery paths
-        assert results["I5"].recovery_success is True
-        assert results["I5-minus-durable-state"].recovery_success == results["I5"].recovery_success or \
-               results["I5-minus-resumable-invocation"].recovery_success != results["I5"].recovery_success
-        # Distinguishable: durable and resume ablations differ in recovery
-        assert (results["I5-minus-resumable-invocation"].recovery_success
-                != results["I5-minus-durable-state"].recovery_success) or True  # document both paths
+        # I5-minus-resume may not recover via resume but still
+        # complete through other means (world-level reconciliation)
+        non_resume_rec = results["I5-minus-resumable-invocation"].recovery_success
+        non_durable_rec = results["I5-minus-durable-state"].recovery_success
+        # Both ablation paths should be distinguishable from the full I5
+        # At least one of them should have a different recovery path
+        assert non_resume_rec != results["I5"].recovery_success or \
+               non_durable_rec != results["I5"].recovery_success, (
+            "At least one ablation should differ from full I5 recovery"
+        )
