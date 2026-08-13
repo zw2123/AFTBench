@@ -120,6 +120,23 @@ class I5MinusDurableState(I5AblationInterface):
     def __init__(self):
         super().__init__(AFTFeatureSet(durable_state=False))
         self._ablation_name = "I5-minus-durable-state"
+        # Clear durable state storage — no persistence across process restarts
+        self._durable: dict[str, dict[str, Any]] = {}
+    
+    def invoke(self, capability_id: str, params: dict, world: Any, context: dict | None = None) -> dict:
+        # Call parent but strip _durable after each call
+        result = super().invoke(capability_id, params, world, context)
+        # Clear _durable to simulate no durable storage
+        self._durable.clear()
+        return result
+    
+    def resume(self, invocation_id: str) -> dict:
+        # Without durable state, resume only works if _invocations has the entry
+        inv = self._invocations.get(invocation_id)
+        if inv is None:
+            return {"status": "error", "error": f"Durable state not available: invocation '{invocation_id}' not found."}
+        inv["lifecycle_state"] = "resumed"
+        return {"status": "success", "invocation_id": invocation_id, "lifecycle_state": "resumed"}
     
     def reconcile(self, invocation_id: str) -> dict:
         # Disable reconciliation (requires durable state)

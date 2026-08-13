@@ -1,0 +1,88 @@
+{
+  "experiment": "M1_resume_vs_durable",
+  "n_passed": 11,
+  "n_total": 16,
+  "all_passed": false,
+  "results": [
+    {
+      "label": "ordinary: I3",
+      "passed": true,
+      "detail": "recovery=True, outcome=completed_as_requested"
+    },
+    {
+      "label": "ordinary: I5",
+      "passed": true,
+      "detail": "recovery=True, outcome=completed_as_requested"
+    },
+    {
+      "label": "ordinary: I5-minus-resumable-invocation",
+      "passed": false,
+      "detail": "recovery=False, outcome=completed_as_requested"
+    },
+    {
+      "label": "ordinary: I5-minus-durable-state",
+      "passed": false,
+      "detail": "recovery=False, outcome=completed_as_requested"
+    },
+    {
+      "label": "state-loss: I3 got invocation_id",
+      "passed": true,
+      "detail": "invocation_id=inv-94e9e5144174, status=error"
+    },
+    {
+      "label": "state-loss: I3 cleared _invocations",
+      "passed": true,
+      "detail": "was 0 entries, now empty"
+    },
+    {
+      "label": "state-loss: I3 resume after loss",
+      "passed": false,
+      "detail": "resume_status=error"
+    },
+    {
+      "label": "state-loss: I5 got invocation_id",
+      "passed": true,
+      "detail": "invocation_id=inv-b858a2c5bbf6, status=partial"
+    },
+    {
+      "label": "state-loss: I5 cleared _invocations",
+      "passed": true,
+      "detail": "was 0 entries, now empty"
+    },
+    {
+      "label": "state-loss: I5 resume after loss",
+      "passed": true,
+      "detail": "resume_status=success"
+    },
+    {
+      "label": "state-loss: I5-minus-resumable-invocation got invocation_id",
+      "passed": true,
+      "detail": "invocation_id=inv-1a7e63eb9d09, status=partial"
+    },
+    {
+      "label": "state-loss: I5-minus-resumable-invocation cleared _invocations",
+      "passed": true,
+      "detail": "was 0 entries, now empty"
+    },
+    {
+      "label": "state-loss: I5-minus-resumable-invocation resume after loss",
+      "passed": false,
+      "detail": "resume_status=error"
+    },
+    {
+      "label": "state-loss: I5-minus-durable-state got invocation_id",
+      "passed": true,
+      "detail": "invocation_id=inv-288a933d4523, status=partial"
+    },
+    {
+      "label": "state-loss: I5-minus-durable-state cleared _invocations",
+      "passed": true,
+      "detail": "was 0 entries, now empty"
+    },
+    {
+      "label": "state-loss: I5-minus-durable-state resume after loss",
+      "passed": false,
+      "detail": "resume_status=error"
+    }
+  ]
+}
