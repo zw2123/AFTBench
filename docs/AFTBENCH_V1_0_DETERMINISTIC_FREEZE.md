@@ -8,8 +8,9 @@ API-parsing, or infrastructure fixes are permitted hereafter.
 
 | Item | Value |
 |------|-------|
-| Freeze commit | `5351f5d` |
-| Tag | `aftbench-v1.0-deterministic` |
+| Evidence freeze commit (all code + evidence) | `5351f5d` |
+| Freeze documentation + tag commit | `6a4bb21` |
+| Tag | `aftbench-v1.0-deterministic` (points at `6a4bb21`) |
 | SAP v1.0 (preregistered, H1–H4) | commit `82ba77d` (plan decided at `d7fcf84`) |
 | SAP v1.1 (pre-specified, 7-contrast family + H5) | commit `1e1f565` (co-committed with H5 evidence) |
 | SAP doc sha256 (v1.1, frozen) | `d9f540af2e30440f…` (docs/STATISTICAL_ANALYSIS_PLAN_V1.md) |
